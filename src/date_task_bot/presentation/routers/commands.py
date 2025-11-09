@@ -23,11 +23,12 @@ class TimeZoneCallback(CallbackData, prefix="tz"):
 
 @router.message(Command("start"))
 async def start(
-    message: Message,
-    user_repository: UserRepository,
-    state: FSMContext,
+    message: Message, user_repository: UserRepository, state: FSMContext, chat_id: str
 ):
-    await user_repository.create(UserCreate(id=str(message.chat.id)))
+    # TODO: create use case
+    user = await user_repository.get(id=chat_id)
+    if not user:
+        await user_repository.create(UserCreate(id=chat_id))
     await update_main_message(
         state=state, message=message, text="Привет, это бот для задач", create_new=True
     )
@@ -37,12 +38,11 @@ async def start(
 async def set_timezone(
     message: Message,
     state: FSMContext,
-    user_repository: UserRepository,
     chat_id: str,
     kbr_builder: KeyboardBuilder,
+    get_tz_uc: GetTimezoneUseCase,
 ):
-    uc = GetTimezoneUseCase(user_repo=user_repository)
-    user_tz = await uc.execute(user_id=chat_id)
+    user_tz = await get_tz_uc.execute(user_id=chat_id)
 
     popular_zones = ["Europe/Moscow", "Europe/London", "Asia/Tokyo", "America/New_York"]
     for tz in popular_zones:
@@ -67,15 +67,14 @@ async def set_timezone_callback(
     callback_data: TimeZoneCallback,
     state: FSMContext,
     chat_id: str,
-    user_repository: UserRepository,
+    set_tz_uc: SetTimezoneUseCase,
 ):
     tz = callback_data.tz
     if tz == "other":
         await state.set_state(TimezoneSelectionState.AWAIT_TZ_NAME)
         text = "Напишите ваш часовой пояс по стандарту IANA."
     else:
-        uc = SetTimezoneUseCase(user_repo=user_repository)
-        res = await uc.execute(user_id=chat_id, tz=tz)
+        res = await set_tz_uc.execute(user_id=chat_id, tz=tz)
 
         if res.success and res.current_time:
             text = f"Часовой пояс установлен: {tz}\nТекущее время: {res.current_time.strftime('%H:%M')}"
@@ -90,12 +89,11 @@ async def set_timezone_message(
     message: Message,
     state: FSMContext,
     chat_id: str,
-    user_repository: UserRepository,
+    set_tz_uc: SetTimezoneUseCase,
 ):
     await state.set_state()
     tz = str(message.text).strip()
-    uc = SetTimezoneUseCase(user_repo=user_repository)
-    res = await uc.execute(user_id=chat_id, tz=tz)
+    res = await set_tz_uc.execute(user_id=chat_id, tz=tz)
 
     if res.success and res.current_time:
         text = f"Часовой пояс установлен: {tz}\nТекущее время: {res.current_time.strftime('%H:%M')}"
