@@ -1,6 +1,8 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 
 from date_task_bot.models import TaskOrm
 
@@ -23,9 +25,30 @@ class TaskRepository(BaseRepository):
                 await session.rollback()
                 raise RepositoryException(UNEXPECTED_ERROR)
 
-    async def get(self, id: UUID) -> TaskResponse | None:
+    async def get(self, id: UUID, load_reminders: bool = False) -> TaskResponse | None:
         async with self.session_factory() as session:
-            res = await session.get(TaskOrm, id)
+            options = []
+            if load_reminders:
+                options.append(selectinload(TaskOrm.reminders))
+
+            res = await session.get(TaskOrm, id, options=options)
             if res is None:
                 return None
             return TaskResponse.model_validate(res)
+
+    async def get_by_user_id(
+        self, user_id: str, load_reminders: bool = False
+    ) -> list[TaskResponse]:
+        async with self.session_factory() as session:
+            options = []
+            if load_reminders:
+                options.append(selectinload(TaskOrm.reminders))
+            stmt = (
+                select(TaskOrm)
+                .options(*options)
+                .where(TaskOrm.user_id == user_id)
+                .order_by(TaskOrm.created_at.desc())
+            )
+            res = await session.execute(stmt)
+            result = res.scalars().all()
+            return [TaskResponse.model_validate(i) for i in result]

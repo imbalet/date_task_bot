@@ -12,9 +12,6 @@ class Task(BaseModel):
     text: str
     created_at: datetime
     edited_at: datetime
+    reminders: list[Reminder]
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class TaskWithReminders(Task):
-    tasks: list[Reminder]

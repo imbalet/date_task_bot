@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
 from date_task_bot.models import RemindersOrm
@@ -31,3 +32,14 @@ class ReminderRepository(BaseRepository):
             if res is None:
                 return None
             return ReminderResponse.model_validate(res)
+
+    async def get_by_task_id(self, task_id: str) -> list[ReminderResponse]:
+        async with self.session_factory() as session:
+            stmt = (
+                select(RemindersOrm)
+                .where(RemindersOrm.task_id == task_id)
+                .order_by(RemindersOrm.remind_at.desc())
+            )
+            res = await session.execute(stmt)
+            result = res.scalars().all()
+            return [ReminderResponse.model_validate(i) for i in result]

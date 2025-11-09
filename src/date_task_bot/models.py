@@ -20,7 +20,7 @@ class UserOrm(Base):
         DateTime(timezone=True), server_default=func.now()
     )
 
-    tasks: Mapped[TaskOrm] = relationship(cascade="all, delete-orphan", lazy="selectin")
+    tasks: Mapped[TaskOrm] = relationship(cascade="all, delete-orphan", lazy="raise")
 
     def __init__(self, id: str):
         self.id = id
@@ -39,7 +39,7 @@ class TaskOrm(Base):
     edited_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
     reminders: Mapped[RemindersOrm] = relationship(
-        cascade="all, delete-orphan", lazy="selectin"
+        cascade="all, delete-orphan", lazy="raise"
     )
 
     def __init__(self, user_id: str, text: str):

@@ -1,6 +1,7 @@
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 
-from date_task_bot.models import UserOrm
+from date_task_bot.models import TaskOrm, UserOrm
 
 from .base_repository import BaseRepository
 from .exceptions import ALREADY_EXISTS_MESSAGE, AlreadyExistsException
@@ -23,9 +24,17 @@ class UserRepository(BaseRepository):
                     ALREADY_EXISTS_MESSAGE.format(entity=f"User with chat_id={user.id}")
                 )
 
-    async def get(self, id: str) -> UserResponse | None:
+    async def get(
+        self, id: str, load_tasks: bool = False, load_reminders: bool = False
+    ) -> UserResponse | None:
         async with self.session_factory() as session:
-            res = await session.get(UserOrm, id)
+            options = []
+            if load_reminders:
+                options.append(selectinload(TaskOrm.reminders))
+            if load_tasks:
+                options.append(selectinload(UserOrm.tasks))
+
+            res = await session.get(UserOrm, id, options=options)
             if res is None:
                 return None
             return UserResponse.model_validate(res)

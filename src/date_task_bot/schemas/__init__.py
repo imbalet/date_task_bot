@@ -1,12 +1,10 @@
 from .reminder import Reminder, ReminderStatus
-from .task import Task, TaskWithReminders
-from .user import User, UserWithTasks
+from .task import Task
+from .user import User
 
 __all__ = [
     "Reminder",
     "ReminderStatus",
     "Task",
-    "TaskWithReminders",
     "User",
-    "UserWithTasks",
 ]

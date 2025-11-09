@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 class ReminderStatus(str, Enum):
     PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
     SENT = "SENT"
     FAILED = "FAILED"
 

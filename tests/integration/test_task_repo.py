@@ -1,3 +1,4 @@
+import asyncio
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -45,3 +46,24 @@ async def test_get_not_exists(task_repo: TaskRepository, fixed_uuid: UUID):
     res = await task_repo.get(fixed_uuid)
 
     assert res is None
+
+
+async def test_get_by_user_id(
+    task_repo: TaskRepository,
+    user_in_db: UserResponse,
+    async_session_factory,
+    task_create_schema: TaskCreate,
+):
+    created1: TaskOrm = await create_entity(
+        async_session_factory, TaskOrm(**task_create_schema.model_dump(mode="json"))
+    )
+    await asyncio.sleep(1)
+    created2: TaskOrm = await create_entity(
+        async_session_factory, TaskOrm(**task_create_schema.model_dump(mode="json"))
+    )
+
+    res = await task_repo.get_by_user_id(user_in_db.id)
+
+    assert len(res) == 2
+    assert res[0].id == created2.id
+    assert res[1].id == created1.id
