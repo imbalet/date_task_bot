@@ -109,6 +109,7 @@ class TaskOrm(Base):
         ForeignKey(UserOrm.id, ondelete="CASCADE"), index=True
     )
     text: Mapped[str]
+    due_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     status: Mapped[TaskStatus] = mapped_column(
         Enum(TaskStatus, native_enum=True), default=TaskStatus.PENDING
     )
@@ -121,9 +122,10 @@ class TaskOrm(Base):
         cascade="all, delete-orphan", lazy="raise"
     )
 
-    def __init__(self, user_id: str, text: str):
+    def __init__(self, user_id: str, text: str, due_date: datetime):
         self.user_id = user_id
         self.text = text
+        self.due_date = due_date
 
 
 class RemindersOrm(Base):

@@ -57,6 +57,7 @@ class ReminderResponse(ReminderCreate):
 class TaskCreate(RepositoryDTO):
     user_id: str
     text: str
+    due_date: datetime
 
 
 class TaskResponse(TaskCreate):

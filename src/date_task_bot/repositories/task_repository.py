@@ -16,7 +16,9 @@ class TaskRepository(BaseRepository):
     async def create(self, task: TaskCreate) -> TaskResponse:
         async with self.session_factory() as session:
             try:
-                new = TaskOrm(user_id=task.user_id, text=task.text)
+                new = TaskOrm(
+                    user_id=task.user_id, text=task.text, due_date=task.due_date
+                )
                 session.add(new)
                 await session.commit()
                 await session.refresh(new)
