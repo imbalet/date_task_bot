@@ -5,7 +5,7 @@ from uuid import UUID
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 from sqlalchemy import inspect
 
-from date_task_bot.schemas import ReminderStatus
+from date_task_bot.schemas import ReminderStatus, TaskStatus
 
 
 def ensure_timezone(d: datetime | None) -> datetime | None:
@@ -60,6 +60,7 @@ class TaskCreate(RepositoryDTO):
 
 class TaskResponse(TaskCreate):
     id: UUID
+    status: TaskStatus
     created_at: AwareDatetime
     edited_at: OptionalAwareDatetime
     reminders: list[ReminderResponse] = Field(default_factory=list)

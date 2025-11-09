@@ -6,7 +6,7 @@ from uuid import UUID, uuid4
 from sqlalchemy import DateTime, Enum, ForeignKey, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from date_task_bot.schemas import ReminderStatus
+from date_task_bot.schemas import ReminderStatus, TaskStatus
 
 
 class Base(DeclarativeBase):
@@ -33,6 +33,9 @@ class TaskOrm(Base):
         ForeignKey(UserOrm.id, ondelete="CASCADE"), index=True
     )
     text: Mapped[str]
+    status: Mapped[TaskStatus] = mapped_column(
+        Enum(TaskStatus, native_enum=True), default=TaskStatus.PENDING
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
