@@ -1,0 +1,51 @@
+import asyncio
+import logging
+import sys
+
+from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
+from aiogram.methods.delete_webhook import DeleteWebhook
+from aiogram.types import BotCommand
+
+from date_task_bot.config import get_config
+from date_task_bot.database import create_tables, get_sessionmaker
+from date_task_bot.presentation.middleware import (
+    CallbackMessageMiddleware,
+    DBMiddleware,
+)
+from date_task_bot.presentation.routers import commands_router, create_task_router
+
+
+async def main() -> None:
+
+    dp = Dispatcher()
+
+    dp.callback_query.middleware(CallbackMessageMiddleware())
+
+    bot = Bot(
+        token=get_config().BOT_TOKEN,
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+    )
+
+    commands = [
+        BotCommand(command="/start", description="Запустить бота"),
+    ]  # TODO: move it
+    await bot.set_my_commands(commands)
+
+    await bot(DeleteWebhook(drop_pending_updates=True))
+    dp.include_router(commands_router)
+    dp.include_router(create_task_router)
+
+    engine, sessionmaker = await get_sessionmaker()
+    await create_tables(engine)
+
+    dp.update.middleware(DBMiddleware(sessionmaker))
+    await dp.start_polling(bot)
+
+    await engine.dispose()
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    asyncio.run(main())
