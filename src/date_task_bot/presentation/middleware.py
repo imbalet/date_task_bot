@@ -8,6 +8,7 @@ from date_task_bot.repositories import (
     ReminderRepository,
     TaskRepository,
     UserRepository,
+    UserSettingsRepository,
 )
 from date_task_bot.use_cases import (
     GetTimezoneUseCase,
@@ -30,6 +31,7 @@ class DIMiddleware(BaseMiddleware):
 
         # DB, repositories
         user_repo = UserRepository(session_factory=self.sessionmaker)
+        user_settings_repo = UserSettingsRepository(session_factory=self.sessionmaker)
         task_repo = TaskRepository(session_factory=self.sessionmaker)
         reminder_repo = ReminderRepository(session_factory=self.sessionmaker)
 
@@ -37,6 +39,7 @@ class DIMiddleware(BaseMiddleware):
         data["reminder_repository"] = reminder_repo
         data["task_repository"] = task_repo
         data["user_repository"] = user_repo
+        data["user_settings_repository"] = user_settings_repo
         data["kbr_builder"] = KeyboardBuilder()
 
         # utils
@@ -56,8 +59,8 @@ class DIMiddleware(BaseMiddleware):
         data["chat_id"] = str(chat_id)
 
         # use cases
-        data["get_tz_uc"] = GetTimezoneUseCase(user_repo=user_repo)
-        data["set_tz_uc"] = SetTimezoneUseCase(user_repo=user_repo)
+        data["get_tz_uc"] = GetTimezoneUseCase(user_settings_repo=user_settings_repo)
+        data["set_tz_uc"] = SetTimezoneUseCase(user_settings_repo=user_settings_repo)
         data["parse_datetime_uc"] = ParseDateTimeUseCase()
 
         return await handler(event, data)

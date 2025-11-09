@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import insert, select
 from sqlalchemy.exc import IntegrityError
 
 from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
@@ -25,6 +25,17 @@ class ReminderRepository(BaseRepository):
             except IntegrityError:
                 await session.rollback()
                 raise AppException(UNEXPECTED_ERROR)
+
+    async def bulk_create(
+        self, reminders: list[ReminderCreate]
+    ) -> list[ReminderResponse]:
+        async with self.session_factory() as session:
+            res = await session.execute(
+                insert(RemindersOrm).returning(RemindersOrm),
+                [r.model_dump(mode="json") for r in reminders],
+            )
+            result = res.scalars().all()
+            return [ReminderResponse.model_validate(i) for i in result]
 
     async def get(self, id: UUID) -> ReminderResponse | None:
         async with self.session_factory() as session:

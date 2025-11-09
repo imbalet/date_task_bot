@@ -1,17 +1,14 @@
-from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
-from date_task_bot.models import TaskOrm, UserOrm
-
-from .base_repository import BaseRepository
 from date_task_bot.exceptions import (
     ALREADY_EXISTS_MESSAGE,
-    NOT_FOUND_MESSAGE,
     AlreadyExistsException,
-    NotFoundException,
 )
-from .schemas import UserCreate, UserResponse, UserUpdate
+from date_task_bot.models import TaskOrm, UserOrm, UserSettingsOrm
+
+from .base_repository import BaseRepository
+from .schemas import UserCreate, UserResponse
 
 
 class UserRepository(BaseRepository):
@@ -19,7 +16,7 @@ class UserRepository(BaseRepository):
     async def create(self, user: UserCreate) -> UserResponse:
         async with self.session_factory() as session:
             try:
-                new = UserOrm(id=user.id)
+                new = UserOrm(id=user.id, settings=UserSettingsOrm())
                 session.add(new)
                 await session.commit()
                 await session.refresh(new)
@@ -31,7 +28,12 @@ class UserRepository(BaseRepository):
                 )
 
     async def get(
-        self, id: str, load_tasks: bool = False, load_reminders: bool = False
+        self,
+        id: str,
+        load_tasks: bool = False,
+        load_reminders: bool = False,
+        load_settings: bool = False,
+        load_timings: bool = False,
     ) -> UserResponse | None:
         async with self.session_factory() as session:
             options = []
@@ -39,25 +41,12 @@ class UserRepository(BaseRepository):
                 options.append(selectinload(TaskOrm.reminders))
             if load_tasks:
                 options.append(selectinload(UserOrm.tasks))
+            if load_settings:
+                options.append(selectinload(UserOrm.settings))
+            if load_timings:
+                options.append(selectinload(UserSettingsOrm.timings))
 
             res = await session.get(UserOrm, id, options=options)
             if res is None:
                 return None
             return UserResponse.model_validate(res)
-
-    async def update(self, id: str, data: UserUpdate) -> UserResponse:
-        async with self.session_factory() as session:
-            stmt = (
-                update(UserOrm)
-                .where(UserOrm.id == id)
-                .values(timezone=data.timezone)
-                .returning(UserOrm)
-            )
-            res = await session.execute(stmt)
-            await session.commit()
-            result = res.scalars().one_or_none()
-            if not result:
-                raise NotFoundException(
-                    NOT_FOUND_MESSAGE.format(entity=f"User with chat_id={id}")
-                )
-            return UserResponse.model_validate(result)

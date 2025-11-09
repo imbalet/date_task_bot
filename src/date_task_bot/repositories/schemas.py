@@ -6,6 +6,7 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 from sqlalchemy import inspect
 
 from date_task_bot.schemas import ReminderStatus, TaskStatus
+from date_task_bot.schemas.remind_timing import RemindTiming
 
 
 def ensure_timezone(d: datetime | None) -> datetime | None:
@@ -70,11 +71,18 @@ class UserCreate(RepositoryDTO):
     id: str
 
 
+class UserSettings(RepositoryDTO):
+    id: UUID
+    user_id: str
+    timezone: str
+    timings: list[RemindTiming] = Field(default_factory=list)
+
+
 class UserResponse(UserCreate):
     created_at: AwareDatetime
-    timezone: str
     tasks: list[TaskResponse] = Field(default_factory=list)
+    settings: UserSettings | None = None
 
 
-class UserUpdate(RepositoryDTO):
+class UserSettingsUpdate(RepositoryDTO):
     timezone: str

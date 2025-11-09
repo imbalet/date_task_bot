@@ -53,8 +53,8 @@ async def set_timezone(
         state=state,
         message=message,
         text=(
-            f"Выберите свой часовой пояс. Текущий часовой пояс: {user_tz.current_timezone},"
-            f"текущее время: {user_tz.current_time}."
+            f"Выберите свой часовой пояс. Текущий часовой пояс: {user_tz.current_timezone}, "
+            f"текущее время: {user_tz.current_time.strftime('%H:%M')}."
         ),
         reply_markup=kbr_builder.as_markup(),
         create_new=True,

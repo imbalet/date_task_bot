@@ -1,12 +1,43 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum, ForeignKey, func
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.types import TypeDecorator
 
 from date_task_bot.schemas import ReminderStatus, TaskStatus
+
+DEFAULT_TIMINGS = [timedelta(hours=-1), timedelta(hours=-2), timedelta(days=-1)]
+
+
+class RelativeTime(TypeDecorator):
+    impl = INTERVAL
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(INTERVAL())
+        else:
+            return dialect.type_descriptor(Integer())
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if dialect.name == "postgresql":
+            return value
+        else:
+            return int(value.total_seconds())
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        if dialect.name == "postgresql":
+            return value
+        else:
+            return timedelta(seconds=value)
 
 
 class Base(DeclarativeBase):
@@ -19,12 +50,56 @@ class UserOrm(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+
+    tasks: Mapped[list[TaskOrm]] = relationship(
+        cascade="all, delete-orphan", lazy="raise"
+    )
+    settings: Mapped[UserSettingsOrm] = relationship(
+        cascade="all, delete-orphan", lazy="raise", uselist=False
+    )
+
+    def __init__(self, id: str, settings: UserSettingsOrm | None = None):
+        self.id = id
+        if settings:
+            self.settings = settings
+
+
+class UserSettingsOrm(Base):
+    __tablename__ = "user_settings"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    user_id: Mapped[str] = mapped_column(ForeignKey(UserOrm.id, ondelete="CASCADE"))
     timezone: Mapped[str] = mapped_column(default="UTC")
 
-    tasks: Mapped[TaskOrm] = relationship(cascade="all, delete-orphan", lazy="raise")
+    timings: Mapped[list[RemindTimingOrm]] = relationship(
+        cascade="all, delete-orphan", lazy="raise"
+    )
 
-    def __init__(self, id: str):
-        self.id = id
+    def __init__(
+        self, timings: list[RemindTimingOrm] | None = None, user_id: str | None = None
+    ):
+        self.timings = timings or [RemindTimingOrm(timing=t) for t in DEFAULT_TIMINGS]
+        if user_id:
+            self.user_id = user_id
+
+
+class RemindTimingOrm(Base):
+    __tablename__ = "remind_timings"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    settings_id: Mapped[UUID] = mapped_column(
+        ForeignKey(UserSettingsOrm.id, ondelete="CASCADE")
+    )
+    timing: Mapped[timedelta] = mapped_column(RelativeTime())
+
+    __table_args__ = (
+        UniqueConstraint("settings_id", "timing", name="uq_settings_timings"),
+    )
+
+    def __init__(self, timing: timedelta, settings_id: UUID | None = None):
+        if settings_id:
+            self.settings_id = settings_id
+        self.timing = timing
 
 
 class TaskOrm(Base):
@@ -42,7 +117,7 @@ class TaskOrm(Base):
     )
     edited_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    reminders: Mapped[RemindersOrm] = relationship(
+    reminders: Mapped[list[RemindersOrm]] = relationship(
         cascade="all, delete-orphan", lazy="raise"
     )
 
