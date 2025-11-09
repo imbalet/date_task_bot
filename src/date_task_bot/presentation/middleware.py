@@ -9,9 +9,14 @@ from date_task_bot.repositories import (
     TaskRepository,
     UserRepository,
 )
+from date_task_bot.use_cases import (
+    GetTimezoneUseCase,
+    ParseDateTimeUseCase,
+    SetTimezoneUseCase,
+)
 
 
-class DBMiddleware(BaseMiddleware):
+class DIMiddleware(BaseMiddleware):
     def __init__(self, sessionmaker):
         super().__init__()
         self.sessionmaker = sessionmaker
@@ -22,20 +27,30 @@ class DBMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: Dict[str, Any],
     ) -> Any:
+
+        # DB, repositories
+        user_repo = UserRepository(session_factory=self.sessionmaker)
+        task_repo = TaskRepository(session_factory=self.sessionmaker)
+        reminder_repo = ReminderRepository(session_factory=self.sessionmaker)
+
         data["sessionmaker"] = self.sessionmaker
-        data["reminder_repository"] = ReminderRepository(
-            session_factory=self.sessionmaker
-        )
-        data["task_repository"] = TaskRepository(session_factory=self.sessionmaker)
-        data["user_repository"] = UserRepository(session_factory=self.sessionmaker)
+        data["reminder_repository"] = reminder_repo
+        data["task_repository"] = task_repo
+        data["user_repository"] = user_repo
         data["kbr_builder"] = KeyboardBuilder()
 
+        # utils
         chat_id = None
         if isinstance(event, Message):
             chat_id = event.chat.id
         elif isinstance(event, CallbackQuery):
             chat_id = event.message.chat.id  # type: ignore
         data["chat_id"] = str(chat_id)
+
+        # use cases
+        data["get_tz_uc"] = GetTimezoneUseCase(user_repo=user_repo)
+        data["set_tz_uc"] = SetTimezoneUseCase(user_repo=user_repo)
+        data["parse_datetime_uc"] = ParseDateTimeUseCase()
 
         return await handler(event, data)
 

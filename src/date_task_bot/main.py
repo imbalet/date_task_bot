@@ -15,7 +15,7 @@ from date_task_bot.exceptions import AppException
 from date_task_bot.exceptions_handler import repository_or_uc_exceptions_handler
 from date_task_bot.presentation.middleware import (
     CallbackMessageMiddleware,
-    DBMiddleware,
+    DIMiddleware,
 )
 from date_task_bot.presentation.routers import commands_router, create_task_router
 
@@ -47,7 +47,7 @@ async def main() -> None:
     engine, sessionmaker = await get_sessionmaker()
     await create_tables(engine)
 
-    dp.update.middleware(DBMiddleware(sessionmaker))
+    dp.update.middleware(DIMiddleware(sessionmaker))
     await dp.start_polling(bot)
 
     await engine.dispose()
