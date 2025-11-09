@@ -32,7 +32,7 @@ class ReminderRepository(BaseRepository):
         async with self.session_factory() as session:
             res = await session.execute(
                 insert(RemindersOrm).returning(RemindersOrm),
-                [r.model_dump(mode="json") for r in reminders],
+                [r.model_dump() for r in reminders],
             )
             result = res.scalars().all()
             return [ReminderResponse.model_validate(i) for i in result]
