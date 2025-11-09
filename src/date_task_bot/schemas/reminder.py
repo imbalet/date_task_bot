@@ -2,7 +2,7 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from .base_schema import BaseAppSchema
 
 
 class ReminderStatus(str, Enum):
@@ -12,10 +12,8 @@ class ReminderStatus(str, Enum):
     FAILED = "FAILED"
 
 
-class Reminder(BaseModel):
+class Reminder(BaseAppSchema):
     id: UUID
     task_id: UUID
     remind_at: datetime
     status: ReminderStatus
-
-    model_config = ConfigDict(from_attributes=True)

@@ -2,8 +2,9 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import Field
 
+from .base_schema import BaseAppSchema
 from .reminder import Reminder
 
 
@@ -12,13 +13,12 @@ class TaskStatus(str, Enum):
     DONE = "DONE"
 
 
-class Task(BaseModel):
+class Task(BaseAppSchema):
     id: UUID
     user_id: str
     text: str
+    due_date: datetime
     status: TaskStatus
     created_at: datetime
-    edited_at: datetime
-    reminders: list[Reminder]
-
-    model_config = ConfigDict(from_attributes=True)
+    edited_at: datetime | None
+    reminders: list[Reminder] = Field(default_factory=list)

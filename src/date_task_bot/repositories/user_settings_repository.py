@@ -8,14 +8,14 @@ from date_task_bot.exceptions import (
 from date_task_bot.models import UserSettingsOrm
 
 from .base_repository import BaseRepository
-from .schemas import UserSettings, UserSettingsUpdate
+from .schemas import UserSettingsResponse, UserSettingsUpdate
 
 
 class UserSettingsRepository(BaseRepository):
 
     async def get_by_user_id(
         self, user_id: str, load_timings: bool = False
-    ) -> UserSettings:
+    ) -> UserSettingsResponse:
         async with self.session_factory() as session:
             options = []
             if load_timings:
@@ -33,9 +33,11 @@ class UserSettingsRepository(BaseRepository):
                         entity=f"Settings for user with chat_id={user_id}"
                     )
                 )
-            return UserSettings.model_validate(result)
+            return UserSettingsResponse.model_validate(result)
 
-    async def update(self, user_id: str, data: UserSettingsUpdate) -> UserSettings:
+    async def update(
+        self, user_id: str, data: UserSettingsUpdate
+    ) -> UserSettingsResponse:
         async with self.session_factory() as session:
             stmt = (
                 update(UserSettingsOrm)
@@ -50,4 +52,4 @@ class UserSettingsRepository(BaseRepository):
                 raise NotFoundException(
                     NOT_FOUND_MESSAGE.format(entity=f"User with chat_id={user_id}")
                 )
-            return UserSettings.model_validate(result)
+            return UserSettingsResponse.model_validate(result)
