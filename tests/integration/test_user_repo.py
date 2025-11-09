@@ -4,7 +4,7 @@ import pytest
 
 from date_task_bot.models import UserOrm
 from date_task_bot.repositories import UserRepository
-from date_task_bot.repositories.exceptions import AlreadyExistsException
+from date_task_bot.exceptions import AlreadyExistsException
 from date_task_bot.repositories.schemas import UserCreate, UserResponse
 from tests.integration.utils import create_entity, get_from_db_by_pk
 

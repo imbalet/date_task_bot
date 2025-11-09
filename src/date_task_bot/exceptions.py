@@ -3,14 +3,14 @@ NOT_FOUND_MESSAGE = "{entity} not found."
 UNEXPECTED_ERROR = "Unexpected database error."
 
 
-class RepositoryException(Exception):
+class AppException(Exception):
     def __init__(self, message: str) -> None:
         super().__init__(message)
 
 
-class AlreadyExistsException(RepositoryException):
+class AlreadyExistsException(AppException):
     pass
 
 
-class NotFoundException(RepositoryException):
+class NotFoundException(AppException):
     pass

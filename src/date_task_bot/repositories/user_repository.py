@@ -5,7 +5,7 @@ from sqlalchemy.orm import selectinload
 from date_task_bot.models import TaskOrm, UserOrm
 
 from .base_repository import BaseRepository
-from .exceptions import (
+from date_task_bot.exceptions import (
     ALREADY_EXISTS_MESSAGE,
     NOT_FOUND_MESSAGE,
     AlreadyExistsException,

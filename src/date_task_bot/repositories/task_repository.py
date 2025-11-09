@@ -4,10 +4,10 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
+from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
 from date_task_bot.models import TaskOrm
 
 from .base_repository import BaseRepository
-from .exceptions import UNEXPECTED_ERROR, RepositoryException
 from .schemas import TaskCreate, TaskResponse
 
 
@@ -23,7 +23,7 @@ class TaskRepository(BaseRepository):
                 return TaskResponse.model_validate(new)
             except IntegrityError:
                 await session.rollback()
-                raise RepositoryException(UNEXPECTED_ERROR)
+                raise AppException(UNEXPECTED_ERROR)
 
     async def get(self, id: UUID, load_reminders: bool = False) -> TaskResponse | None:
         async with self.session_factory() as session:

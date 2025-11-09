@@ -3,10 +3,10 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 
+from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
 from date_task_bot.models import RemindersOrm
 
 from .base_repository import BaseRepository
-from .exceptions import UNEXPECTED_ERROR, RepositoryException
 from .schemas import ReminderCreate, ReminderResponse
 
 
@@ -24,7 +24,7 @@ class ReminderRepository(BaseRepository):
                 return ReminderResponse.model_validate(new)
             except IntegrityError:
                 await session.rollback()
-                raise RepositoryException(UNEXPECTED_ERROR)
+                raise AppException(UNEXPECTED_ERROR)
 
     async def get(self, id: UUID) -> ReminderResponse | None:
         async with self.session_factory() as session:
