@@ -33,7 +33,7 @@ async def test_get(
     task_create_schema: TaskCreate,
 ):
     created: TaskOrm = await create_entity(
-        async_session_factory, TaskOrm(**task_create_schema.model_dump(mode="json"))
+        async_session_factory, TaskOrm(**task_create_schema.model_dump())
     )
 
     res = await task_repo.get(created.id)  # type: ignore
@@ -55,11 +55,11 @@ async def test_get_by_user_id(
     task_create_schema: TaskCreate,
 ):
     created1: TaskOrm = await create_entity(
-        async_session_factory, TaskOrm(**task_create_schema.model_dump(mode="json"))
+        async_session_factory, TaskOrm(**task_create_schema.model_dump())
     )
     await asyncio.sleep(1)
     created2: TaskOrm = await create_entity(
-        async_session_factory, TaskOrm(**task_create_schema.model_dump(mode="json"))
+        async_session_factory, TaskOrm(**task_create_schema.model_dump())
     )
 
     res = await task_repo.get_by_user_id(user_in_db.id)

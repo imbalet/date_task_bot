@@ -22,8 +22,8 @@ def user_create_schema():
 
 
 @pytest.fixture
-def task_create_schema(user_create_schema: UserCreate):
-    return TaskCreate(user_id=user_create_schema.id, text="text")
+def task_create_schema(user_create_schema: UserCreate, fixed_now: datetime):
+    return TaskCreate(user_id=user_create_schema.id, due_date=fixed_now, text="text")
 
 
 @pytest.fixture

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
@@ -71,11 +73,16 @@ async def user_in_db(
 
 @pytest.fixture
 async def task_in_db(
-    async_session_factory, user_in_db: UserResponse, task_create_schema: TaskCreate
+    async_session_factory,
+    user_in_db: UserResponse,
+    task_create_schema: TaskCreate,
+    fixed_now: datetime,
 ) -> TaskResponse:
     res = await create_entity(
         async_session_factory,
-        TaskOrm(user_id=user_in_db.id, text=task_create_schema.text),
+        TaskOrm(
+            user_id=user_in_db.id, text=task_create_schema.text, due_date=fixed_now
+        ),
     )
     return TaskResponse.model_validate(res)
 
