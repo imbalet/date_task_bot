@@ -5,11 +5,14 @@ import sys
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.filters.exception import ExceptionTypeFilter
 from aiogram.methods.delete_webhook import DeleteWebhook
 from aiogram.types import BotCommand
 
 from date_task_bot.config import get_config
 from date_task_bot.database import create_tables, get_sessionmaker
+from date_task_bot.exceptions import AppException
+from date_task_bot.exceptions_handler import repository_or_uc_exceptions_handler
 from date_task_bot.presentation.middleware import (
     CallbackMessageMiddleware,
     DBMiddleware,
@@ -20,6 +23,10 @@ from date_task_bot.presentation.routers import commands_router, create_task_rout
 async def main() -> None:
 
     dp = Dispatcher()
+
+    dp.errors.register(
+        repository_or_uc_exceptions_handler, ExceptionTypeFilter(AppException)
+    )
 
     dp.callback_query.middleware(CallbackMessageMiddleware())
 
