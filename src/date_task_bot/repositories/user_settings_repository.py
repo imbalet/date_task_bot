@@ -1,4 +1,5 @@
 from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
 
 from date_task_bot.exceptions import (
     NOT_FOUND_MESSAGE,
@@ -12,13 +13,26 @@ from .schemas import UserSettings, UserSettingsUpdate
 
 class UserSettingsRepository(BaseRepository):
 
-    async def get_by_user_id(self, user_id: str) -> UserSettings:
+    async def get_by_user_id(
+        self, user_id: str, load_timings: bool = False
+    ) -> UserSettings:
         async with self.session_factory() as session:
-            stmt = select(UserSettingsOrm).where(UserSettingsOrm.user_id == user_id)
+            options = []
+            if load_timings:
+                options.append(selectinload(UserSettingsOrm.timings))
+            stmt = (
+                select(UserSettingsOrm)
+                .options(*options)
+                .where(UserSettingsOrm.user_id == user_id)
+            )
             res = await session.execute(stmt)
             result = res.scalar_one_or_none()
             if result is None:
-                raise NotFoundException(f"Settings for user with chat_id={user_id}")
+                raise NotFoundException(
+                    NOT_FOUND_MESSAGE.format(
+                        entity=f"Settings for user with chat_id={user_id}"
+                    )
+                )
             return UserSettings.model_validate(result)
 
     async def update(self, user_id: str, data: UserSettingsUpdate) -> UserSettings:

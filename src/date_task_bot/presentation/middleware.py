@@ -11,6 +11,7 @@ from date_task_bot.repositories import (
     UserSettingsRepository,
 )
 from date_task_bot.use_cases import (
+    CreateTaskUseCase,
     GetTimezoneUseCase,
     ParseDateTimeUseCase,
     SetTimezoneUseCase,
@@ -62,6 +63,11 @@ class DIMiddleware(BaseMiddleware):
         data["get_tz_uc"] = GetTimezoneUseCase(user_settings_repo=user_settings_repo)
         data["set_tz_uc"] = SetTimezoneUseCase(user_settings_repo=user_settings_repo)
         data["parse_datetime_uc"] = ParseDateTimeUseCase()
+        data["create_task_uc"] = CreateTaskUseCase(
+            task_repo=task_repo,
+            reminder_repo=reminder_repo,
+            user_settings_repo=user_settings_repo,
+        )
 
         return await handler(event, data)
 
