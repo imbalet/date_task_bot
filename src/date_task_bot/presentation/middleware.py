@@ -1,7 +1,7 @@
 from typing import Any, Awaitable, Callable, Dict
 
 from aiogram import BaseMiddleware, Bot
-from aiogram.types import CallbackQuery, InaccessibleMessage, Message, TelegramObject
+from aiogram.types import CallbackQuery, InaccessibleMessage, TelegramObject, Update
 
 from date_task_bot.presentation.utils import KeyboardBuilder
 from date_task_bot.repositories import (
@@ -41,10 +41,18 @@ class DIMiddleware(BaseMiddleware):
 
         # utils
         chat_id = None
-        if isinstance(event, Message):
-            chat_id = event.chat.id
-        elif isinstance(event, CallbackQuery):
-            chat_id = event.message.chat.id  # type: ignore
+        if isinstance(event, Update):
+            if event.message:
+                chat_id = event.message.chat.id
+            elif event.callback_query:
+                chat_id = event.callback_query.message.chat.id  # type: ignore
+            else:
+                # TODO: LOGGING, handle
+                pass
+        else:
+            # TODO: LOGGING, handle
+            pass
+
         data["chat_id"] = str(chat_id)
 
         # use cases
