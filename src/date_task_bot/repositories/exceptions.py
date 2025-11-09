@@ -1,4 +1,5 @@
 ALREADY_EXISTS_MESSAGE = "{entity} is already exists."
+NOT_FOUND_MESSAGE = "{entity} not found."
 UNEXPECTED_ERROR = "Unexpected database error."
 
 
@@ -8,4 +9,8 @@ class RepositoryException(Exception):
 
 
 class AlreadyExistsException(RepositoryException):
+    pass
+
+
+class NotFoundException(RepositoryException):
     pass

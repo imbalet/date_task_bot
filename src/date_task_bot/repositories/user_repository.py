@@ -1,11 +1,17 @@
+from sqlalchemy import update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
 from date_task_bot.models import TaskOrm, UserOrm
 
 from .base_repository import BaseRepository
-from .exceptions import ALREADY_EXISTS_MESSAGE, AlreadyExistsException
-from .schemas import UserCreate, UserResponse
+from .exceptions import (
+    ALREADY_EXISTS_MESSAGE,
+    NOT_FOUND_MESSAGE,
+    AlreadyExistsException,
+    NotFoundException,
+)
+from .schemas import UserCreate, UserResponse, UserUpdate
 
 
 class UserRepository(BaseRepository):
@@ -38,3 +44,20 @@ class UserRepository(BaseRepository):
             if res is None:
                 return None
             return UserResponse.model_validate(res)
+
+    async def update(self, id: str, data: UserUpdate) -> UserResponse:
+        async with self.session_factory() as session:
+            stmt = (
+                update(UserOrm)
+                .where(UserOrm.id == id)
+                .values(timezone=data.timezone)
+                .returning(UserOrm)
+            )
+            res = await session.execute(stmt)
+            await session.commit()
+            result = res.scalars().one_or_none()
+            if not result:
+                raise NotFoundException(
+                    NOT_FOUND_MESSAGE.format(entity=f"User with chat_id={id}")
+                )
+            return UserResponse.model_validate(result)

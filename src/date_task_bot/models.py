@@ -19,6 +19,7 @@ class UserOrm(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    timezone: Mapped[str] = mapped_column(default="UTC")
 
     tasks: Mapped[TaskOrm] = relationship(cascade="all, delete-orphan", lazy="raise")
 

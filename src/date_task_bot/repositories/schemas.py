@@ -72,4 +72,9 @@ class UserCreate(RepositoryDTO):
 
 class UserResponse(UserCreate):
     created_at: AwareDatetime
+    timezone: str
     tasks: list[TaskResponse] = Field(default_factory=list)
+
+
+class UserUpdate(RepositoryDTO):
+    timezone: str
