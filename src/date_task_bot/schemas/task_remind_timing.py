@@ -4,7 +4,7 @@ from uuid import UUID
 from .base_schema import BaseAppSchema
 
 
-class RemindTiming(BaseAppSchema):
-    id: str
-    settings_id: UUID
+class TaskRemindTiming(BaseAppSchema):
+    id: UUID
+    task_id: UUID
     timing: timedelta

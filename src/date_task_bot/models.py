@@ -71,20 +71,24 @@ class UserSettingsOrm(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey(UserOrm.id, ondelete="CASCADE"))
     timezone: Mapped[str] = mapped_column(default="UTC")
 
-    timings: Mapped[list[RemindTimingOrm]] = relationship(
+    timings: Mapped[list[DefaultRemindTimingOrm]] = relationship(
         cascade="all, delete-orphan", lazy="raise"
     )
 
     def __init__(
-        self, timings: list[RemindTimingOrm] | None = None, user_id: str | None = None
+        self,
+        timings: list[DefaultRemindTimingOrm] | None = None,
+        user_id: str | None = None,
     ):
-        self.timings = timings or [RemindTimingOrm(timing=t) for t in DEFAULT_TIMINGS]
+        self.timings = timings or [
+            DefaultRemindTimingOrm(timing=t) for t in DEFAULT_TIMINGS
+        ]
         if user_id:
             self.user_id = user_id
 
 
-class RemindTimingOrm(Base):
-    __tablename__ = "remind_timings"
+class DefaultRemindTimingOrm(Base):
+    __tablename__ = "remind_default_timings"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     settings_id: Mapped[UUID] = mapped_column(
@@ -121,11 +125,31 @@ class TaskOrm(Base):
     reminders: Mapped[list[RemindersOrm]] = relationship(
         cascade="all, delete-orphan", lazy="raise"
     )
+    timings: Mapped[list[TaskRemindTimingOrm]] = relationship(
+        cascade="all, delete-orphan", lazy="raise"
+    )
 
     def __init__(self, user_id: str, text: str, due_date: datetime):
         self.user_id = user_id
         self.text = text
         self.due_date = due_date
+
+
+class TaskRemindTimingOrm(Base):
+    __tablename__ = "remind_default_timings"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    task_id: Mapped[UUID] = mapped_column(ForeignKey(TaskOrm.id, ondelete="CASCADE"))
+    timing: Mapped[timedelta] = mapped_column(RelativeTime())
+
+    __table_args__ = (
+        UniqueConstraint("settings_id", "timing", name="uq_settings_timings"),
+    )
+
+    def __init__(self, timing: timedelta, task_id: UUID | None = None):
+        if task_id:
+            self.task_id = task_id
+        self.timing = timing
 
 
 class RemindersOrm(Base):

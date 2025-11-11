@@ -1,13 +1,15 @@
-from .remind_timing import RemindTiming
+from .default_remind_timing import DefaultRemindTiming
 from .reminder import Reminder, ReminderStatus
 from .task import Task, TaskStatus
+from .task_remind_timing import TaskRemindTiming
 from .user import User
 from .user_settings import UserSettings
 
 __all__ = [
     "Reminder",
     "ReminderStatus",
-    "RemindTiming",
+    "DefaultRemindTiming",
+    "TaskRemindTiming",
     "Task",
     "TaskStatus",
     "User",

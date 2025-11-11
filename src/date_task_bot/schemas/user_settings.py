@@ -1,11 +1,11 @@
 from uuid import UUID
 
 from .base_schema import BaseAppSchema
-from .remind_timing import RemindTiming
+from .default_remind_timing import DefaultRemindTiming
 
 
 class UserSettings(BaseAppSchema):
     id: UUID
     user_id: str
     timezone: str
-    timings: list[RemindTiming]
+    timings: list[DefaultRemindTiming]

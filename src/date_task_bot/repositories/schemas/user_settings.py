@@ -1,6 +1,6 @@
 from pydantic import Field
 
-from date_task_bot.schemas import RemindTiming, UserSettings
+from date_task_bot.schemas import DefaultRemindTiming, UserSettings
 
 from .base_schema import RepositoryDTO
 
@@ -10,4 +10,4 @@ class UserSettingsUpdate(RepositoryDTO):
 
 
 class UserSettingsResponse(UserSettings, RepositoryDTO):
-    timings: list[RemindTiming] = Field(default_factory=list)
+    timings: list[DefaultRemindTiming] = Field(default_factory=list)

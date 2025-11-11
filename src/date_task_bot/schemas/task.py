@@ -6,6 +6,7 @@ from pydantic import Field
 
 from .base_schema import BaseAppSchema
 from .reminder import Reminder
+from .task_remind_timing import TaskRemindTiming
 
 
 class TaskStatus(str, Enum):
@@ -22,3 +23,4 @@ class Task(BaseAppSchema):
     created_at: datetime
     edited_at: datetime | None
     reminders: list[Reminder] = Field(default_factory=list)
+    timings: list[TaskRemindTiming] = Field(default_factory=list)
