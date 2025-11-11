@@ -37,14 +37,18 @@ class UserRepository(BaseRepository):
     ) -> UserResponse | None:
         async with self.session_factory() as session:
             options = []
-            if load_reminders:
-                options.append(selectinload(TaskOrm.reminders))
             if load_tasks:
                 options.append(selectinload(UserOrm.tasks))
+            if load_reminders:
+                options.append(
+                    selectinload(UserOrm.tasks).selectinload(TaskOrm.reminders)
+                )
             if load_settings:
                 options.append(selectinload(UserOrm.settings))
             if load_timings:
-                options.append(selectinload(UserSettingsOrm.timings))
+                options.append(
+                    selectinload(UserOrm.settings).selectinload(UserSettingsOrm.timings)
+                )
 
             res = await session.get(UserOrm, id, options=options)
             if res is None:
