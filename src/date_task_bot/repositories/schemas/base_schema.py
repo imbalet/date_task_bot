@@ -19,20 +19,36 @@ OptionalAwareDatetime = Annotated[datetime | None, AfterValidator(ensure_timezon
 
 
 class RepositoryDTO(BaseModel):
+
     @classmethod
     def model_validate(cls, obj, **kwargs):
+        def serialize(obj):
+            if not hasattr(obj, "__mapper__"):
+                return obj
+
+            insp = inspect(obj)
+            data = {}
+            for name in insp.attrs.keys():
+                if name in insp.unloaded:
+                    continue
+                try:
+                    value = getattr(obj, name)
+                    if hasattr(value, "__mapper__"):
+                        value = serialize(value)
+                    elif isinstance(value, list):
+                        value = [
+                            serialize(v) if hasattr(v, "__mapper__") else v
+                            for v in value
+                        ]
+                    data[name] = value
+                except Exception:
+                    continue
+            return data
+
         if not hasattr(obj, "__mapper__"):
             return super().model_validate(obj, **kwargs)
 
-        insp = inspect(obj)
-        data = {}
-
-        for name in insp.attrs.keys():
-            if name not in insp.unloaded:
-                try:
-                    data[name] = getattr(obj, name)
-                except Exception:
-                    continue
+        data = serialize(obj)
         return super().model_validate(data, **kwargs)
 
     model_config = ConfigDict(from_attributes=True)
