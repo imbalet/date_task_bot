@@ -6,8 +6,11 @@ from .base_schema import AwareDatetime, RepositoryDTO
 
 
 class ReminderCreate(RepositoryDTO):
-    task_id: UUID
     remind_at: AwareDatetime
+
+
+class ReminderCreateForTask(ReminderCreate):
+    task_id: UUID
 
 
 class ReminderResponse(Reminder, RepositoryDTO):

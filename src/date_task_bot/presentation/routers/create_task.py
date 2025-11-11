@@ -34,7 +34,7 @@ async def start_adding_task(
         )
         text = (
             f"Создана задача\n`{res.task.text}`\n c датой {res.task.due_date} и напоминаниями в\n"
-            + "\n".join([str(i.remind_at) for i in res.reminders])
+            + "\n".join([str(i.remind_at) for i in res.task.reminders])
         )
 
     await update_main_message(state=state, message=message, text=text, create_new=True)

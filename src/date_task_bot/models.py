@@ -133,11 +133,13 @@ class TaskOrm(Base):
         user_id: str,
         text: str,
         due_date: datetime,
+        reminders: list[RemindersOrm],
         timings: list[TaskRemindTimingOrm],
     ):
         self.user_id = user_id
         self.text = text
         self.due_date = due_date
+        self.reminders = reminders
         self.timings = timings
 
 
@@ -171,6 +173,7 @@ class RemindersOrm(Base):
         Enum(ReminderStatus, native_enum=True), default=ReminderStatus.PENDING
     )
 
-    def __init__(self, task_id: UUID, remind_at: datetime):
-        self.task_id = task_id
+    def __init__(self, remind_at: datetime, task_id: UUID | None = None):
+        if task_id:
+            self.task_id = task_id
         self.remind_at = remind_at

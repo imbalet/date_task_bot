@@ -16,7 +16,7 @@ class UserRepository(BaseRepository):
     async def create(self, user: UserCreate) -> UserResponse:
         async with self.session_factory() as session:
             try:
-                new = UserOrm(id=user.id, settings=UserSettingsOrm())
+                new = UserOrm(id=user.id)
                 session.add(new)
                 await session.commit()
                 await session.refresh(new)
