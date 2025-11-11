@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
 from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
-from date_task_bot.models import TaskOrm
+from date_task_bot.models import TaskOrm, TaskRemindTimingOrm
 
 from .base_repository import BaseRepository
 from .schemas import TaskCreate, TaskResponse
@@ -17,7 +17,12 @@ class TaskRepository(BaseRepository):
         async with self.session_factory() as session:
             try:
                 new = TaskOrm(
-                    user_id=task.user_id, text=task.text, due_date=task.due_date
+                    user_id=task.user_id,
+                    text=task.text,
+                    due_date=task.due_date,
+                    timings=[
+                        TaskRemindTimingOrm(timing=tim.timing) for tim in task.timings
+                    ],
                 )
                 session.add(new)
                 await session.commit()

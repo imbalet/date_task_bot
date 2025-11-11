@@ -10,6 +10,7 @@ from date_task_bot.repositories.schemas import (
     ReminderCreate,
     ReminderResponse,
     TaskCreate,
+    TaskRemindTimingCreate,
     TaskResponse,
 )
 
@@ -38,8 +39,11 @@ class CreateTaskUseCase:
         user_settings = await self.user_settings_repo.get_by_user_id(
             user_id=user_id, load_timings=True
         )
+        timings = [
+            TaskRemindTimingCreate(timing=t.timing) for t in user_settings.timings
+        ]
         task = await self.task_repo.create(
-            TaskCreate(user_id=user_id, text=text, due_date=due_date)
+            TaskCreate(user_id=user_id, text=text, due_date=due_date, timings=timings)
         )
 
         reminders = [

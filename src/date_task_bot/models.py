@@ -60,8 +60,7 @@ class UserOrm(Base):
 
     def __init__(self, id: str, settings: UserSettingsOrm | None = None):
         self.id = id
-        if settings:
-            self.settings = settings
+        self.settings = settings or UserSettingsOrm()
 
 
 class UserSettingsOrm(Base):
@@ -88,7 +87,7 @@ class UserSettingsOrm(Base):
 
 
 class DefaultRemindTimingOrm(Base):
-    __tablename__ = "remind_default_timings"
+    __tablename__ = "default_remind_timings"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     settings_id: Mapped[UUID] = mapped_column(
@@ -129,21 +128,28 @@ class TaskOrm(Base):
         cascade="all, delete-orphan", lazy="raise"
     )
 
-    def __init__(self, user_id: str, text: str, due_date: datetime):
+    def __init__(
+        self,
+        user_id: str,
+        text: str,
+        due_date: datetime,
+        timings: list[TaskRemindTimingOrm],
+    ):
         self.user_id = user_id
         self.text = text
         self.due_date = due_date
+        self.timings = timings
 
 
 class TaskRemindTimingOrm(Base):
-    __tablename__ = "remind_default_timings"
+    __tablename__ = "task_remind_timings"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     task_id: Mapped[UUID] = mapped_column(ForeignKey(TaskOrm.id, ondelete="CASCADE"))
     timing: Mapped[timedelta] = mapped_column(RelativeTime())
 
     __table_args__ = (
-        UniqueConstraint("settings_id", "timing", name="uq_settings_timings"),
+        UniqueConstraint("task_id", "timing", name="uq_settings_timings"),
     )
 
     def __init__(self, timing: timedelta, task_id: UUID | None = None):
