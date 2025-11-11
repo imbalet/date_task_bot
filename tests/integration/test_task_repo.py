@@ -1,4 +1,5 @@
 import asyncio
+from copy import deepcopy
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -28,18 +29,24 @@ async def test_create(
 
 async def test_get(
     task_repo: TaskRepository,
-    user_in_db: UserResponse,
-    async_session_factory,
-    task_create_schema: TaskCreate,
+    task_in_db: TaskResponse,
 ):
-    created: TaskOrm = await create_entity(
-        async_session_factory, TaskOrm(**task_create_schema.model_dump())
-    )
-
-    res = await task_repo.get(created.id)  # type: ignore
+    res = await task_repo.get(task_in_db.id)
 
     assert res
-    assert res.text == created.text
+    assert res.text == task_in_db.text
+    assert len(res.reminders) == 0
+
+
+async def test_get_with_reminders(
+    task_repo: TaskRepository,
+    task_in_db: TaskResponse,
+):
+    res = await task_repo.get(task_in_db.id, load_reminders=True)
+
+    assert res
+    assert res.text == task_in_db.text
+    assert len(res.reminders) > 0
 
 
 async def test_get_not_exists(task_repo: TaskRepository, fixed_uuid: UUID):
@@ -52,15 +59,11 @@ async def test_get_by_user_id(
     task_repo: TaskRepository,
     user_in_db: UserResponse,
     async_session_factory,
-    task_create_schema: TaskCreate,
+    task_orm: TaskOrm,
 ):
-    created1: TaskOrm = await create_entity(
-        async_session_factory, TaskOrm(**task_create_schema.model_dump())
-    )
+    created1: TaskOrm = await create_entity(async_session_factory, deepcopy(task_orm))
     await asyncio.sleep(1)
-    created2: TaskOrm = await create_entity(
-        async_session_factory, TaskOrm(**task_create_schema.model_dump())
-    )
+    created2: TaskOrm = await create_entity(async_session_factory, deepcopy(task_orm))
 
     res = await task_repo.get_by_user_id(user_in_db.id)
 
