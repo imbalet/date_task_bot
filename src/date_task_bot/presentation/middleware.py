@@ -64,9 +64,7 @@ class DIMiddleware(BaseMiddleware):
         data["set_tz_uc"] = SetTimezoneUseCase(user_settings_repo=user_settings_repo)
         data["parse_datetime_uc"] = ParseDateTimeUseCase()
         data["create_task_uc"] = CreateTaskUseCase(
-            task_repo=task_repo,
-            reminder_repo=reminder_repo,
-            user_settings_repo=user_settings_repo,
+            task_repo=task_repo, user_settings_repo=user_settings_repo
         )
 
         return await handler(event, data)

@@ -2,7 +2,6 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from date_task_bot.repositories import (
-    ReminderRepository,
     TaskRepository,
     UserSettingsRepository,
 )
@@ -22,13 +21,9 @@ class CreateTaskUseCaseResult:
 class CreateTaskUseCase:
 
     def __init__(
-        self,
-        task_repo: TaskRepository,
-        reminder_repo: ReminderRepository,
-        user_settings_repo: UserSettingsRepository,
+        self, task_repo: TaskRepository, user_settings_repo: UserSettingsRepository
     ) -> None:
         self.task_repo = task_repo
-        self.reminder_repo = reminder_repo
         self.user_settings_repo = user_settings_repo
 
     async def execute(
