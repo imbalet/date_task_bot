@@ -28,8 +28,8 @@ class TaskRepository(BaseRepository):
                     ],
                 )
                 session.add(new)
+                await session.flush()
                 await session.commit()
-                await session.refresh(new)
                 return TaskResponse.model_validate(new)
             except IntegrityError:
                 await session.rollback()

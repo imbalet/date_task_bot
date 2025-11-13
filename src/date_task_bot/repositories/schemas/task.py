@@ -18,4 +18,4 @@ class TaskCreate(RepositoryDTO):
 class TaskResponse(Task, RepositoryDTO):
     due_date: AwareDatetime
     created_at: AwareDatetime
-    edited_at: OptionalAwareDatetime
+    edited_at: OptionalAwareDatetime = None
