@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 
 from date_task_bot.repositories import (
     TaskRepository,
@@ -29,6 +29,17 @@ class CreateTaskUseCase:
     async def execute(
         self, user_id: str, text: str, due_date: datetime
     ) -> CreateTaskUseCaseResult:
+        """Creates task with related timings and reminders.
+
+        Args:
+            user_id (str): _description_
+            text (str): _description_
+            due_date (datetime): _description_
+
+        Returns:
+            CreateTaskUseCaseResult: _description_
+        """
+        due_date_utc = due_date.astimezone(UTC)
         user_settings = await self.user_settings_repo.get_by_user_id(
             user_id=user_id, load_timings=True
         )
@@ -36,13 +47,14 @@ class CreateTaskUseCase:
             TaskRemindTimingCreate(timing=t.timing) for t in user_settings.timings
         ]
         reminders = [
-            ReminderCreate(remind_at=due_date + t.timing) for t in user_settings.timings
+            ReminderCreate(remind_at=due_date_utc + t.timing)
+            for t in user_settings.timings
         ]
         task = await self.task_repo.create(
             TaskCreate(
                 user_id=user_id,
                 text=text,
-                due_date=due_date,
+                due_date=due_date_utc,
                 timings=timings,
                 reminders=reminders,
             )
