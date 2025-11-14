@@ -16,7 +16,9 @@ class ReminderRepository(BaseRepository):
         async with self.session_factory() as session:
             try:
                 new = RemindersOrm(
-                    task_id=reminder.task_id, remind_at=reminder.remind_at
+                    task_id=reminder.task_id,
+                    remind_at=reminder.remind_at,
+                    offset_seconds=reminder.offset_seconds,
                 )
                 session.add(new)
                 await session.commit()

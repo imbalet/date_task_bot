@@ -8,7 +8,6 @@ from date_task_bot.repositories.schemas import (
     ReminderCreate,
     ReminderCreateForTask,
     TaskCreate,
-    TaskRemindTimingCreate,
     TaskResponse,
     UserCreate,
     UserResponse,
@@ -43,7 +42,7 @@ def timezone():
 @pytest.fixture
 def user_settings_empty_response_schema(fixed_uuid: UUID, user_id: str, timezone: str):
     return UserSettingsResponse(
-        id=fixed_uuid, user_id=user_id, timezone=timezone, timings=[]
+        id=fixed_uuid, user_id=user_id, timezone=timezone, offsets_seconds=[]
     )
 
 
@@ -58,7 +57,7 @@ def user_settings_response_schema(
         id=fixed_uuid,
         user_id=user_id,
         timezone=timezone,
-        timings=sample_default_timings_response,
+        offsets_seconds=sample_default_timings_response,
     )
 
 
@@ -88,18 +87,10 @@ def user_response_schema(
 
 
 @pytest.fixture
-def sample_task_timings():
-    return [
-        TaskRemindTimingCreate(timing=timedelta(days=-1)),
-        TaskRemindTimingCreate(timing=timedelta(hours=-1)),
-    ]
-
-
-@pytest.fixture
 def sample_default_timings_create():
     return [
-        DefaultRemindTimingCreate(timing=timedelta(days=-1)),
-        DefaultRemindTimingCreate(timing=timedelta(hours=-1)),
+        DefaultRemindTimingCreate(offset_seconds=timedelta(days=-1)),
+        DefaultRemindTimingCreate(offset_seconds=timedelta(hours=-1)),
     ]
 
 
@@ -109,7 +100,7 @@ def sample_default_timings_response(sample_default_timings_create, fixed_uuid):
         DefaultRemindTiming(
             id=uuid4(),
             settings_id=fixed_uuid,
-            timing=i.timing,
+            offset_seconds=i.offset_seconds,
         )
         for i in sample_default_timings_create
     ]
@@ -119,16 +110,11 @@ def sample_default_timings_response(sample_default_timings_create, fixed_uuid):
 
 
 @pytest.fixture
-def task_create_schema(
-    user_create_schema: UserCreate,
-    fixed_now: datetime,
-    sample_task_timings: list[TaskRemindTimingCreate],
-):
+def task_create_schema(user_create_schema: UserCreate, fixed_now: datetime):
     return TaskCreate(
         user_id=user_create_schema.id,
         due_date=fixed_now,
         text="text",
-        timings=sample_task_timings,
         reminders=[],
     )
 
@@ -146,7 +132,6 @@ def task_response_schema(
         created_at=fixed_now,
         edited_at=None,
         reminders=[],
-        timings=[],
     )
 
 
@@ -154,20 +139,35 @@ def task_response_schema(
 
 
 @pytest.fixture
-def reminder_create_schema(fixed_now: datetime):
-    return ReminderCreate(remind_at=fixed_now)
+def default_offset_seconds():
+    return timedelta(hours=-3)
 
 
 @pytest.fixture
-def reminder_create_for_task_schema(fixed_uuid: UUID, fixed_now: datetime):
-    return ReminderCreateForTask(task_id=fixed_uuid, remind_at=fixed_now)
+def reminder_create_schema(fixed_now: datetime, default_offset_seconds: timedelta):
+    return ReminderCreate(remind_at=fixed_now, offset_seconds=default_offset_seconds)
+
+
+@pytest.fixture
+def reminder_create_for_task_schema(
+    fixed_uuid: UUID, fixed_now: datetime, default_offset_seconds: timedelta
+):
+    return ReminderCreateForTask(
+        task_id=fixed_uuid, remind_at=fixed_now, offset_seconds=default_offset_seconds
+    )
 
 
 @pytest.fixture
 def sample_reminders(
-    sample_default_timings_create: list[DefaultRemindTimingCreate], fixed_now
+    sample_default_timings_create: list[DefaultRemindTimingCreate], fixed_now: datetime
 ):
     return [
-        ReminderCreate(remind_at=fixed_now + sample_default_timings_create[0].timing),
-        ReminderCreate(remind_at=fixed_now + sample_default_timings_create[1].timing),
+        ReminderCreate(
+            remind_at=fixed_now + sample_default_timings_create[0].offset_seconds,
+            offset_seconds=sample_default_timings_create[0].offset_seconds,
+        ),
+        ReminderCreate(
+            remind_at=fixed_now + sample_default_timings_create[1].offset_seconds,
+            offset_seconds=sample_default_timings_create[1].offset_seconds,
+        ),
     ]

@@ -10,7 +10,12 @@ from sqlalchemy.types import TypeDecorator
 
 from date_task_bot.schemas import ReminderStatus, TaskStatus
 
-DEFAULT_TIMINGS = [timedelta(hours=-1), timedelta(hours=-2), timedelta(days=-1)]
+DEFAULT_OFFSETS = [
+    timedelta(hours=0),
+    timedelta(hours=-1),
+    timedelta(hours=-2),
+    timedelta(days=-1),
+]
 
 
 class RelativeTime(TypeDecorator):
@@ -70,17 +75,17 @@ class UserSettingsOrm(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey(UserOrm.id, ondelete="CASCADE"))
     timezone: Mapped[str] = mapped_column(default="UTC")
 
-    timings: Mapped[list[DefaultRemindTimingOrm]] = relationship(
+    offsets_seconds: Mapped[list[DefaultRemindTimingOrm]] = relationship(
         cascade="all, delete-orphan", lazy="raise"
     )
 
     def __init__(
         self,
-        timings: list[DefaultRemindTimingOrm] | None = None,
+        offsets_seconds: list[DefaultRemindTimingOrm] | None = None,
         user_id: str | None = None,
     ):
-        self.timings = timings or [
-            DefaultRemindTimingOrm(timing=t) for t in DEFAULT_TIMINGS
+        self.offsets_seconds = offsets_seconds or [
+            DefaultRemindTimingOrm(offset_seconds=t) for t in DEFAULT_OFFSETS
         ]
         if user_id:
             self.user_id = user_id
@@ -93,16 +98,16 @@ class DefaultRemindTimingOrm(Base):
     settings_id: Mapped[UUID] = mapped_column(
         ForeignKey(UserSettingsOrm.id, ondelete="CASCADE")
     )
-    timing: Mapped[timedelta] = mapped_column(RelativeTime())
+    offset_seconds: Mapped[timedelta] = mapped_column(RelativeTime())
 
     __table_args__ = (
-        UniqueConstraint("settings_id", "timing", name="uq_settings_timings"),
+        UniqueConstraint("settings_id", "offset_seconds", name="uq_settings_timings"),
     )
 
-    def __init__(self, timing: timedelta, settings_id: UUID | None = None):
+    def __init__(self, offset_seconds: timedelta, settings_id: UUID | None = None):
         if settings_id:
             self.settings_id = settings_id
-        self.timing = timing
+        self.offset_seconds = offset_seconds
 
 
 class TaskOrm(Base):
@@ -124,9 +129,6 @@ class TaskOrm(Base):
     reminders: Mapped[list[RemindersOrm]] = relationship(
         cascade="all, delete-orphan", lazy="raise"
     )
-    timings: Mapped[list[TaskRemindTimingOrm]] = relationship(
-        cascade="all, delete-orphan", lazy="raise"
-    )
 
     def __init__(
         self,
@@ -134,30 +136,11 @@ class TaskOrm(Base):
         text: str,
         due_date: datetime,
         reminders: list[RemindersOrm],
-        timings: list[TaskRemindTimingOrm],
     ):
         self.user_id = user_id
         self.text = text
         self.due_date = due_date
         self.reminders = reminders
-        self.timings = timings
-
-
-class TaskRemindTimingOrm(Base):
-    __tablename__ = "task_remind_timings"
-
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    task_id: Mapped[UUID] = mapped_column(ForeignKey(TaskOrm.id, ondelete="CASCADE"))
-    timing: Mapped[timedelta] = mapped_column(RelativeTime())
-
-    __table_args__ = (
-        UniqueConstraint("task_id", "timing", name="uq_settings_timings"),
-    )
-
-    def __init__(self, timing: timedelta, task_id: UUID | None = None):
-        if task_id:
-            self.task_id = task_id
-        self.timing = timing
 
 
 class RemindersOrm(Base):
@@ -169,11 +152,21 @@ class RemindersOrm(Base):
     remind_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
+    offset_seconds: Mapped[timedelta] = mapped_column(RelativeTime())
     status: Mapped[ReminderStatus] = mapped_column(
         Enum(ReminderStatus, native_enum=True), default=ReminderStatus.PENDING
     )
+    __table_args__ = (
+        UniqueConstraint("task_id", "offset_seconds", name="uq_task_offset"),
+    )
 
-    def __init__(self, remind_at: datetime, task_id: UUID | None = None):
+    def __init__(
+        self,
+        remind_at: datetime,
+        offset_seconds: timedelta,
+        task_id: UUID | None = None,
+    ):
         if task_id:
             self.task_id = task_id
         self.remind_at = remind_at
+        self.offset_seconds = offset_seconds

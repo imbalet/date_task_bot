@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 from uuid import UUID
 
@@ -17,3 +17,4 @@ class Reminder(BaseAppSchema):
     task_id: UUID
     remind_at: datetime
     status: ReminderStatus
+    offset_seconds: timedelta

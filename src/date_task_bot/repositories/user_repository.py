@@ -33,7 +33,7 @@ class UserRepository(BaseRepository):
         load_tasks: bool = False,
         load_reminders: bool = False,
         load_settings: bool = False,
-        load_timings: bool = False,
+        load_offsets: bool = False,
     ) -> UserResponse | None:
         async with self.session_factory() as session:
             options = []
@@ -45,9 +45,11 @@ class UserRepository(BaseRepository):
                 )
             if load_settings:
                 options.append(selectinload(UserOrm.settings))
-            if load_timings:
+            if load_offsets:
                 options.append(
-                    selectinload(UserOrm.settings).selectinload(UserSettingsOrm.timings)
+                    selectinload(UserOrm.settings).selectinload(
+                        UserSettingsOrm.offsets_seconds
+                    )
                 )
 
             res = await session.get(UserOrm, id, options=options)

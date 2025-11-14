@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -7,7 +7,6 @@ from date_task_bot.models import (
     Base,
     RemindersOrm,
     TaskOrm,
-    TaskRemindTimingOrm,
     UserOrm,
 )
 from date_task_bot.repositories import (
@@ -24,7 +23,6 @@ from date_task_bot.repositories.schemas import (
     UserCreate,
     UserResponse,
 )
-from date_task_bot.repositories.schemas.task_timing import TaskRemindTimingCreate
 from tests.config import get_config
 from tests.integration.utils import create_entity
 
@@ -97,15 +95,16 @@ def task_orm(
     user_in_db: UserResponse,
     task_create_schema: TaskCreate,
     fixed_now: datetime,
-    sample_task_timings: list[TaskRemindTimingCreate],
     sample_reminders: list[ReminderCreate],
 ):
     return TaskOrm(
         user_id=user_in_db.id,
         text=task_create_schema.text,
         due_date=fixed_now,
-        timings=[TaskRemindTimingOrm(timing=t.timing) for t in sample_task_timings],
-        reminders=[RemindersOrm(remind_at=r.remind_at) for r in sample_reminders],
+        reminders=[
+            RemindersOrm(remind_at=r.remind_at, offset_seconds=r.offset_seconds)
+            for r in sample_reminders
+        ],
     )
 
 
@@ -119,9 +118,15 @@ async def task_in_db(async_session_factory, task_orm: TaskOrm) -> TaskResponse:
 
 
 @pytest.fixture
-def reminder_orm(task_in_db: TaskResponse, reminder_create_schema: ReminderCreate):
+def reminder_orm(
+    task_in_db: TaskResponse,
+    reminder_create_schema: ReminderCreate,
+    default_offset_seconds: timedelta,
+):
     return RemindersOrm(
-        task_id=task_in_db.id, remind_at=reminder_create_schema.remind_at
+        task_id=task_in_db.id,
+        remind_at=reminder_create_schema.remind_at,
+        offset_seconds=default_offset_seconds,
     )
 
 

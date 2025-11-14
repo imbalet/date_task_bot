@@ -10,4 +10,4 @@ class UserSettingsUpdate(RepositoryDTO):
 
 
 class UserSettingsResponse(UserSettings, RepositoryDTO):
-    timings: list[DefaultRemindTiming] = Field(default_factory=list)
+    offsets_seconds: list[DefaultRemindTiming] = Field(default_factory=list)

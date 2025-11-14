@@ -31,7 +31,6 @@ async def test_create(
 async def test_get(
     reminder_repo: ReminderRepository,
     task_in_db: UserResponse,
-    async_session_factory,
     reminder_in_db: ReminderResponse,
 ):
     res = await reminder_repo.get(reminder_in_db.id)

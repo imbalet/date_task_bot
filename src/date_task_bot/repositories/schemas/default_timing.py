@@ -5,7 +5,7 @@ from .base_schema import RepositoryDTO
 
 
 class DefaultRemindTimingCreate(RepositoryDTO):
-    timing: timedelta
+    offset_seconds: timedelta
 
 
 class DefaultRemindTimingCreateForSettings(RepositoryDTO):

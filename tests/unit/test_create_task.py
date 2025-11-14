@@ -29,14 +29,15 @@ async def test_creating_task(
         due_date=task_create_schema.due_date,
     )
 
-    used_timings = task_repo_mock.create.call_args[0][0].timings
     used_reminders = task_repo_mock.create.call_args[0][0].reminders
 
     assert res.task == task_response_schema
 
     assert all(
-        used.timing == actual.timing
-        for used, actual in zip(used_timings, user_settings_response_schema.timings)
+        used.offset_seconds == actual.offset_seconds
+        for used, actual in zip(
+            used_reminders, user_settings_response_schema.offsets_seconds
+        )
     )
     assert all(i.remind_at <= task_create_schema.due_date for i in used_reminders)
     assert any(i.remind_at < task_create_schema.due_date for i in used_reminders)

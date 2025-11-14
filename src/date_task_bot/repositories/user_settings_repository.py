@@ -14,12 +14,12 @@ from .schemas import UserSettingsResponse, UserSettingsUpdate
 class UserSettingsRepository(BaseRepository):
 
     async def get_by_user_id(
-        self, user_id: str, load_timings: bool = False
+        self, user_id: str, load_offsets: bool = False
     ) -> UserSettingsResponse:
         async with self.session_factory() as session:
             options = []
-            if load_timings:
-                options.append(selectinload(UserSettingsOrm.timings))
+            if load_offsets:
+                options.append(selectinload(UserSettingsOrm.offsets_seconds))
             stmt = (
                 select(UserSettingsOrm)
                 .options(*options)

@@ -7,4 +7,4 @@ from .base_schema import BaseAppSchema
 class DefaultRemindTiming(BaseAppSchema):
     id: UUID
     settings_id: UUID
-    timing: timedelta
+    offset_seconds: timedelta
