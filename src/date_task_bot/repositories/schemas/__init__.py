@@ -2,7 +2,12 @@ from .default_timing import (
     DefaultRemindTimingCreate,
     DefaultRemindTimingCreateForSettings,
 )
-from .reminder import ReminderCreate, ReminderCreateForTask, ReminderResponse
+from .reminder import (
+    DueReminder,
+    ReminderCreate,
+    ReminderCreateForTask,
+    ReminderResponse,
+)
 from .task import TaskCreate, TaskResponse
 from .user import UserCreate, UserResponse
 from .user_settings import UserSettingsResponse, UserSettingsUpdate
@@ -15,6 +20,7 @@ __all__ = [
     "TaskResponse",
     "DefaultRemindTimingCreate",
     "DefaultRemindTimingCreateForSettings",
+    "DueReminder",
     "UserCreate",
     "UserResponse",
     "UserSettingsResponse",

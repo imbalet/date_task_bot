@@ -1,13 +1,15 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import insert, select
+from sqlalchemy import insert, select, text, update
 from sqlalchemy.exc import IntegrityError
 
 from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
-from date_task_bot.models import RemindersOrm
+from date_task_bot.models import RemindersOrm, TaskOrm
+from date_task_bot.schemas import ReminderStatus
 
 from .base_repository import BaseRepository
-from .schemas import ReminderCreateForTask, ReminderResponse
+from .schemas import DueReminder, ReminderCreateForTask, ReminderResponse
 
 
 class ReminderRepository(BaseRepository):
@@ -56,3 +58,58 @@ class ReminderRepository(BaseRepository):
             res = await session.execute(stmt)
             result = res.scalars().all()
             return [ReminderResponse.model_validate(i) for i in result]
+
+    async def set_status(
+        self, id: UUID, status: ReminderStatus
+    ) -> ReminderResponse | None:
+        async with self.session_factory() as session:
+            stmt = (
+                update(RemindersOrm)
+                .where(RemindersOrm.id == id)
+                .values(status=status)
+                .returning(RemindersOrm)
+            )
+            res = await session.execute(stmt)
+            await session.commit()
+            result = res.scalar()
+            return ReminderResponse.model_validate(result)
+
+    async def reserve_due_reminders(self, limit: int = 300) -> list[DueReminder]:
+        async with self.session_factory() as session:
+            try:
+                now = datetime.now(UTC)
+                select_stmt = (
+                    select(
+                        RemindersOrm.id.label("id"),
+                        RemindersOrm.remind_at.label("remind_at"),
+                        RemindersOrm.offset_seconds.label("offset_seconds"),
+                        TaskOrm.user_id.label("user_id"),
+                        TaskOrm.text.label("text"),
+                        TaskOrm.due_date.label("due_date"),
+                    )
+                    .join(TaskOrm, TaskOrm.id == RemindersOrm.task_id)
+                    .where(
+                        RemindersOrm.status == ReminderStatus.PENDING,
+                        RemindersOrm.remind_at <= now,
+                    )
+                    .order_by(RemindersOrm.remind_at)
+                    .limit(limit)
+                )
+                select_res = await session.execute(select_stmt)
+                result = select_res.all()
+                ids = [i.id for i in result]
+
+                await session.execute(text("BEGIN IMMEDIATE"))
+                update_stmt = (
+                    update(RemindersOrm)
+                    .where(RemindersOrm.id.in_(ids))
+                    .values(status=ReminderStatus.PROCESSING)
+                )
+                await session.execute(update_stmt)
+                await session.commit()
+
+                return [DueReminder.model_validate(i) for i in result]
+
+            except IntegrityError:
+                await session.rollback()
+                raise AppException(UNEXPECTED_ERROR)

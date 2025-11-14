@@ -92,19 +92,29 @@ async def user_in_db(async_session_factory, user_orm: UserOrm) -> UserResponse:
 
 @pytest.fixture
 def task_orm(
-    user_in_db: UserResponse,
-    task_create_schema: TaskCreate,
-    fixed_now: datetime,
+    task_without_reminders_orm: TaskOrm,
     sample_reminders: list[ReminderCreate],
+):
+    return TaskOrm(
+        user_id=task_without_reminders_orm.user_id,
+        text=task_without_reminders_orm.text,
+        due_date=task_without_reminders_orm.due_date,
+        reminders=[
+            RemindersOrm(remind_at=r.remind_at, offset_seconds=r.offset_seconds)
+            for r in sample_reminders
+        ],
+    )
+
+
+@pytest.fixture
+def task_without_reminders_orm(
+    user_in_db: UserResponse, task_create_schema: TaskCreate, fixed_now: datetime
 ):
     return TaskOrm(
         user_id=user_in_db.id,
         text=task_create_schema.text,
         due_date=fixed_now,
-        reminders=[
-            RemindersOrm(remind_at=r.remind_at, offset_seconds=r.offset_seconds)
-            for r in sample_reminders
-        ],
+        reminders=[],
     )
 
 
@@ -114,17 +124,23 @@ async def task_in_db(async_session_factory, task_orm: TaskOrm) -> TaskResponse:
     return TaskResponse.model_validate(res)
 
 
+@pytest.fixture
+async def task_without_reminders_in_db(
+    async_session_factory, task_without_reminders_orm: TaskOrm
+) -> TaskResponse:
+    res = await create_entity(async_session_factory, task_without_reminders_orm)
+    return TaskResponse.model_validate(res)
+
+
 # Reminder
 
 
 @pytest.fixture
 def reminder_orm(
-    task_in_db: TaskResponse,
     reminder_create_schema: ReminderCreate,
     default_offset_seconds: timedelta,
 ):
     return RemindersOrm(
-        task_id=task_in_db.id,
         remind_at=reminder_create_schema.remind_at,
         offset_seconds=default_offset_seconds,
     )
@@ -132,7 +148,10 @@ def reminder_orm(
 
 @pytest.fixture
 async def reminder_in_db(
-    async_session_factory, reminder_orm: RemindersOrm
+    async_session_factory,
+    reminder_orm: RemindersOrm,
+    task_without_reminders_in_db: TaskResponse,
 ) -> ReminderResponse:
+    reminder_orm.task_id = task_without_reminders_in_db.id
     res = await create_entity(async_session_factory, reminder_orm)
     return ReminderResponse.model_validate(res)
