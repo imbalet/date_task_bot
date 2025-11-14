@@ -5,7 +5,7 @@ from sqlalchemy import insert, select, text, update
 from sqlalchemy.exc import IntegrityError
 
 from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
-from date_task_bot.models import RemindersOrm, TaskOrm
+from date_task_bot.models import RemindersOrm, TaskOrm, UserSettingsOrm
 from date_task_bot.schemas import ReminderStatus
 
 from .base_repository import BaseRepository
@@ -86,8 +86,10 @@ class ReminderRepository(BaseRepository):
                         TaskOrm.user_id.label("user_id"),
                         TaskOrm.text.label("text"),
                         TaskOrm.due_date.label("due_date"),
+                        UserSettingsOrm.timezone.label("timezone"),
                     )
                     .join(TaskOrm, TaskOrm.id == RemindersOrm.task_id)
+                    .join(UserSettingsOrm, UserSettingsOrm.user_id == TaskOrm.user_id)
                     .where(
                         RemindersOrm.status == ReminderStatus.PENDING,
                         RemindersOrm.remind_at <= now,

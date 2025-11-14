@@ -13,11 +13,17 @@ from date_task_bot.config import get_config
 from date_task_bot.database import create_tables, get_sessionmaker
 from date_task_bot.exceptions import AppException
 from date_task_bot.exceptions_handler import repository_or_uc_exceptions_handler
+from date_task_bot.logger import setup_logger
 from date_task_bot.presentation.middleware import (
     CallbackMessageMiddleware,
     DIMiddleware,
 )
 from date_task_bot.presentation.routers import commands_router, create_task_router
+from date_task_bot.presentation.services import Sender
+from date_task_bot.reminder import Reminder
+from date_task_bot.repositories import ReminderRepository
+
+setup_logger()
 
 
 async def main() -> None:
@@ -48,8 +54,17 @@ async def main() -> None:
     await create_tables(engine)
 
     dp.update.middleware(DIMiddleware(sessionmaker))
+
+    sender = Sender(bot=bot)
+    reminder = Reminder(
+        bot=bot, sender=sender, reminder_repo=ReminderRepository(sessionmaker)
+    )
+    reminder.start()
+
     await dp.start_polling(bot)
 
+    # shutdown
+    await reminder.stop()
     await engine.dispose()
 
 

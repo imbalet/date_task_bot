@@ -3,6 +3,8 @@ from zoneinfo import ZoneInfo
 
 from babel.dates import format_datetime
 
+from date_task_bot.repositories.schemas import DueReminder
+
 
 class DateFormatter:
     def __init__(self, timezone: str = "UTC") -> None:
@@ -22,3 +24,15 @@ class DateFormatter:
 
     def format_date_short(self, date: datetime) -> str:
         return self._format_date(date, "EEE, d MMM y 'г.' HH:mm")
+
+
+class ReminderFormatter:
+    def __init__(self, date_formatter: DateFormatter) -> None:
+        self.date_formatter = date_formatter
+
+    def format(self, reminder: DueReminder) -> str:
+        # TODO: add remaining time
+        return (
+            f"Напоминание о задаче {reminder.text}"
+            f" c датой выполнения {self.date_formatter.format_date_short(reminder.due_date)}."
+        )

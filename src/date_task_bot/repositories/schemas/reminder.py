@@ -26,3 +26,4 @@ class DueReminder(RepositoryDTO):
     user_id: str
     text: str
     due_date: datetime
+    timezone: str
