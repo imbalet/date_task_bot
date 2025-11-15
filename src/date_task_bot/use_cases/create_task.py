@@ -5,12 +5,13 @@ from date_task_bot.repositories import (
     TaskRepository,
     UserSettingsRepository,
 )
-from date_task_bot.repositories.schemas import ReminderCreate, TaskCreate, TaskResponse
+from date_task_bot.repositories.schemas import ReminderCreate, TaskCreate
+from date_task_bot.schemas import Task
 
 
 @dataclass
 class CreateTaskUseCaseResult:
-    task: TaskResponse
+    task: Task
 
 
 class CreateTaskUseCase:

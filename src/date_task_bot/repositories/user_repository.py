@@ -6,6 +6,7 @@ from date_task_bot.exceptions import (
     AlreadyExistsException,
 )
 from date_task_bot.models import TaskOrm, UserOrm, UserSettingsOrm
+from date_task_bot.schemas import User
 
 from .base_repository import BaseRepository
 from .schemas import UserCreate, UserResponse
@@ -13,7 +14,7 @@ from .schemas import UserCreate, UserResponse
 
 class UserRepository(BaseRepository):
 
-    async def create(self, user: UserCreate) -> UserResponse:
+    async def create(self, user: UserCreate) -> User:
         async with self.session_factory() as session:
             try:
                 new = UserOrm(id=user.id)
@@ -34,7 +35,7 @@ class UserRepository(BaseRepository):
         load_reminders: bool = False,
         load_settings: bool = False,
         load_offsets: bool = False,
-    ) -> UserResponse | None:
+    ) -> User | None:
         async with self.session_factory() as session:
             options = []
             if load_tasks:

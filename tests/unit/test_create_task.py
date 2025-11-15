@@ -1,7 +1,7 @@
 import pytest
 
-from date_task_bot.repositories.schemas.task import TaskCreate, TaskResponse
-from date_task_bot.repositories.schemas.user_settings import UserSettingsResponse
+from date_task_bot.repositories.schemas import TaskCreate, TaskResponse
+from date_task_bot.schemas import UserSettings
 from date_task_bot.use_cases import CreateTaskUseCase
 
 
@@ -17,7 +17,7 @@ async def test_creating_task(
     task_repo_mock,
     create_task_uc: CreateTaskUseCase,
     task_create_schema: TaskCreate,
-    user_settings_response_schema: UserSettingsResponse,
+    user_settings_response_schema: UserSettings,
     task_response_schema: TaskResponse,
 ):
     user_settings_repo_mock.get_by_user_id.return_value = user_settings_response_schema

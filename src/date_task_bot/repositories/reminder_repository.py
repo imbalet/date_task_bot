@@ -6,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 
 from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
 from date_task_bot.models import RemindersOrm, TaskOrm, UserSettingsOrm
-from date_task_bot.schemas import ReminderStatus
+from date_task_bot.schemas import Reminder, ReminderStatus
 
 from .base_repository import BaseRepository
 from .schemas import DueReminder, ReminderCreateForTask, ReminderResponse
@@ -14,7 +14,7 @@ from .schemas import DueReminder, ReminderCreateForTask, ReminderResponse
 
 class ReminderRepository(BaseRepository):
 
-    async def create(self, reminder: ReminderCreateForTask) -> ReminderResponse:
+    async def create(self, reminder: ReminderCreateForTask) -> Reminder:
         async with self.session_factory() as session:
             try:
                 new = RemindersOrm(
@@ -32,7 +32,7 @@ class ReminderRepository(BaseRepository):
 
     async def bulk_create(
         self, reminders: list[ReminderCreateForTask]
-    ) -> list[ReminderResponse]:
+    ) -> list[Reminder]:
         async with self.session_factory() as session:
             res = await session.execute(
                 insert(RemindersOrm).returning(RemindersOrm),
@@ -41,14 +41,14 @@ class ReminderRepository(BaseRepository):
             result = res.scalars().all()
             return [ReminderResponse.model_validate(i) for i in result]
 
-    async def get(self, id: UUID) -> ReminderResponse | None:
+    async def get(self, id: UUID) -> Reminder | None:
         async with self.session_factory() as session:
             res = await session.get(RemindersOrm, id)
             if res is None:
                 return None
             return ReminderResponse.model_validate(res)
 
-    async def get_by_task_id(self, task_id: str) -> list[ReminderResponse]:
+    async def get_by_task_id(self, task_id: str) -> list[Reminder]:
         async with self.session_factory() as session:
             stmt = (
                 select(RemindersOrm)
@@ -59,9 +59,7 @@ class ReminderRepository(BaseRepository):
             result = res.scalars().all()
             return [ReminderResponse.model_validate(i) for i in result]
 
-    async def set_status(
-        self, id: UUID, status: ReminderStatus
-    ) -> ReminderResponse | None:
+    async def set_status(self, id: UUID, status: ReminderStatus) -> Reminder | None:
         async with self.session_factory() as session:
             stmt = (
                 update(RemindersOrm)

@@ -1,4 +1,6 @@
-from pydantic import Field
+from pydantic import Field, field_validator
+
+from date_task_bot.schemas import Task, User, UserSettings
 
 from .base_schema import AwareDatetime, RepositoryDTO
 from .task import TaskResponse
@@ -9,7 +11,19 @@ class UserCreate(RepositoryDTO):
     id: str
 
 
-class UserResponse(UserCreate):
+class UserResponse(User, RepositoryDTO):
     created_at: AwareDatetime
-    tasks: list[TaskResponse] = Field(default_factory=list)
-    settings: UserSettingsResponse | None = Field(default=None)
+    tasks: list[Task] = Field(default_factory=list)
+    settings: UserSettings | None = Field(default=None)
+
+    @field_validator("tasks", mode="before")
+    def validate_task(cls, v):
+        if not v:
+            return []
+        return [TaskResponse.model_validate(item) for item in v]
+
+    @field_validator("settings", mode="before")
+    def validate_settings(cls, v):
+        if not v:
+            return None
+        return UserSettingsResponse.model_validate(v)

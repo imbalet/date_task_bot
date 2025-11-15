@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 from uuid import UUID
 
 from date_task_bot.schemas import Reminder
@@ -25,5 +25,5 @@ class DueReminder(RepositoryDTO):
     offset_seconds: timedelta
     user_id: str
     text: str
-    due_date: datetime
+    due_date: AwareDatetime
     timezone: str

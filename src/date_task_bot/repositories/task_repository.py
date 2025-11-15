@@ -6,6 +6,7 @@ from sqlalchemy.orm import selectinload
 
 from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
 from date_task_bot.models import RemindersOrm, TaskOrm
+from date_task_bot.schemas import Task
 
 from .base_repository import BaseRepository
 from .schemas import TaskCreate, TaskResponse
@@ -13,7 +14,7 @@ from .schemas import TaskCreate, TaskResponse
 
 class TaskRepository(BaseRepository):
 
-    async def create(self, task: TaskCreate) -> TaskResponse:
+    async def create(self, task: TaskCreate) -> Task:
         async with self.session_factory() as session:
             try:
                 new = TaskOrm(
@@ -35,7 +36,7 @@ class TaskRepository(BaseRepository):
                 await session.rollback()
                 raise AppException(UNEXPECTED_ERROR)
 
-    async def get(self, id: UUID, load_reminders: bool = False) -> TaskResponse | None:
+    async def get(self, id: UUID, load_reminders: bool = False) -> Task | None:
         async with self.session_factory() as session:
             options = []
             if load_reminders:
@@ -48,7 +49,7 @@ class TaskRepository(BaseRepository):
 
     async def get_by_user_id(
         self, user_id: str, load_reminders: bool = False
-    ) -> list[TaskResponse]:
+    ) -> list[Task]:
         async with self.session_factory() as session:
             options = []
             if load_reminders:

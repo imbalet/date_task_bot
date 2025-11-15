@@ -6,6 +6,7 @@ from date_task_bot.exceptions import (
     NotFoundException,
 )
 from date_task_bot.models import UserSettingsOrm
+from date_task_bot.schemas import UserSettings
 
 from .base_repository import BaseRepository
 from .schemas import UserSettingsResponse, UserSettingsUpdate
@@ -15,7 +16,7 @@ class UserSettingsRepository(BaseRepository):
 
     async def get_by_user_id(
         self, user_id: str, load_offsets: bool = False
-    ) -> UserSettingsResponse:
+    ) -> UserSettings:
         async with self.session_factory() as session:
             options = []
             if load_offsets:
@@ -35,9 +36,7 @@ class UserSettingsRepository(BaseRepository):
                 )
             return UserSettingsResponse.model_validate(result)
 
-    async def update(
-        self, user_id: str, data: UserSettingsUpdate
-    ) -> UserSettingsResponse:
+    async def update(self, user_id: str, data: UserSettingsUpdate) -> UserSettings:
         async with self.session_factory() as session:
             stmt = (
                 update(UserSettingsOrm)
@@ -52,4 +51,4 @@ class UserSettingsRepository(BaseRepository):
                 raise NotFoundException(
                     NOT_FOUND_MESSAGE.format(entity=f"User with chat_id={user_id}")
                 )
-            return UserSettingsResponse.model_validate(result)
+            return UserSettings.model_validate(result)

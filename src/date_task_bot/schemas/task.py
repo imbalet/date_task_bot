@@ -2,8 +2,6 @@ from datetime import datetime
 from enum import Enum
 from uuid import UUID
 
-from pydantic import Field
-
 from .base_schema import BaseAppSchema
 from .reminder import Reminder
 
@@ -21,4 +19,4 @@ class Task(BaseAppSchema):
     status: TaskStatus
     created_at: datetime
     edited_at: datetime | None
-    reminders: list[Reminder] = Field(default_factory=list)
+    reminders: list[Reminder]
