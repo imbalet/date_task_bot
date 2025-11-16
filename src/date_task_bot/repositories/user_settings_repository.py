@@ -51,4 +51,4 @@ class UserSettingsRepository(BaseRepository):
                 raise NotFoundException(
                     NOT_FOUND_MESSAGE.format(entity=f"User with chat_id={user_id}")
                 )
-            return UserSettings.model_validate(result)
+            return UserSettingsResponse.model_validate(result)

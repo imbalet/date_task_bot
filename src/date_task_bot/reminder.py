@@ -4,7 +4,7 @@ from logging import getLogger
 from aiogram import Bot
 
 from date_task_bot.presentation.services import Sender
-from date_task_bot.presentation.utils import DateFormatter, ReminderFormatter
+from date_task_bot.presentation.utils import DueReminderFormatter
 from date_task_bot.repositories import ReminderRepository
 from date_task_bot.repositories.schemas import DueReminder
 from date_task_bot.schemas import ReminderStatus
@@ -37,7 +37,7 @@ class Reminder:
             reminder: DueReminder = await self.queue.get()
 
             try:
-                formatter = ReminderFormatter(DateFormatter(reminder.timezone))
+                formatter = DueReminderFormatter(reminder.timezone)
                 await self.sender.send_message(
                     chat_id=int(reminder.user_id), text=formatter.format(reminder)
                 )

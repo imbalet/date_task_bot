@@ -3,7 +3,7 @@ from typing import Any, Awaitable, Callable, Dict
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import CallbackQuery, InaccessibleMessage, TelegramObject, Update
 
-from date_task_bot.presentation.utils import DateFormatter, KeyboardBuilder
+from date_task_bot.presentation.utils import KeyboardBuilder
 from date_task_bot.repositories import (
     ReminderRepository,
     TaskRepository,
@@ -66,9 +66,6 @@ class DIMiddleware(BaseMiddleware):
         data["create_task_uc"] = CreateTaskUseCase(
             task_repo=task_repo, user_settings_repo=user_settings_repo
         )
-
-        # presentation utils
-        data["date_formatter"] = DateFormatter()
 
         return await handler(event, data)
 
