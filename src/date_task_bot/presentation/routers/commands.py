@@ -1,8 +1,10 @@
+from typing import cast
+
 from aiogram import Router
 from aiogram.filters import Command
 from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 
 from date_task_bot.presentation.states import TimezoneSelectionState
 from date_task_bot.presentation.utils import (
@@ -42,7 +44,7 @@ async def start(
         )
     await update_main_message(
         state=state,
-        message=message,
+        event=message,
         text=text,
         create_new=True,
     )
@@ -65,7 +67,7 @@ async def set_timezone(
 
     await update_main_message(
         state=state,
-        message=message,
+        event=message,
         text=(
             f"Выберите свой часовой пояс. Текущий часовой пояс: {user_tz.current_timezone}, "
             f"текущее время: {user_tz.current_time.strftime('%H:%M')}."
@@ -75,15 +77,23 @@ async def set_timezone(
     )
 
 
+@router.message(TimezoneSelectionState.AWAIT_TZ_NAME)
 @router.callback_query(TimeZoneCallback.filter())
 async def set_timezone_callback(
-    callback: CallbackQueryWithMessage,
-    callback_data: TimeZoneCallback,
+    event: Message | CallbackQueryWithMessage,
+    *,
+    callback_data: TimeZoneCallback | None = None,
     state: FSMContext,
     chat_id: str,
     set_tz_uc: SetTimezoneUseCase,
 ):
-    tz = callback_data.tz
+    if isinstance(event, CallbackQuery) and callback_data:
+        tz = callback_data.tz
+    else:
+        event = cast(Message, event)
+        await state.set_state()
+        tz = str(event.text).strip()
+
     if tz == "other":
         await state.set_state(TimezoneSelectionState.AWAIT_TZ_NAME)
         text = "Напишите ваш часовой пояс по стандарту IANA."
@@ -95,23 +105,4 @@ async def set_timezone_callback(
         else:
             text = "Такого часового пояса нет. Попробуйте выбрать из списка популярных или напишите корректно."
 
-    await update_main_message(state=state, message=callback.message, text=text)
-
-
-@router.message(TimezoneSelectionState.AWAIT_TZ_NAME)
-async def set_timezone_message(
-    message: Message,
-    state: FSMContext,
-    chat_id: str,
-    set_tz_uc: SetTimezoneUseCase,
-):
-    await state.set_state()
-    tz = str(message.text).strip()
-    res = await set_tz_uc.execute(user_id=chat_id, tz=tz)
-
-    if res.success and res.current_time:
-        text = f"Часовой пояс установлен: {tz}\nТекущее время: {res.current_time.strftime('%H:%M')}"
-    else:
-        text = "Такого часового пояса нет. Попробуйте выбрать из списка популярных или напишите корректно."
-
-    await update_main_message(state=state, message=message, text=text)
+    await update_main_message(state=state, event=event, text=text)

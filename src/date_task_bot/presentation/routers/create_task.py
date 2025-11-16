@@ -43,4 +43,4 @@ async def start_adding_task(
 
         text = f"Создана задача\n{formatted_task}"
 
-    await update_main_message(state=state, message=message, text=text, create_new=True)
+    await update_main_message(state=state, event=message, text=text, create_new=True)

@@ -1,23 +1,33 @@
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InaccessibleMessage, MaybeInaccessibleMessageUnion
+from aiogram.types import (
+    InaccessibleMessage,
+    MaybeInaccessibleMessageUnion,
+    Message,
+)
+
+from date_task_bot.presentation.utils import CallbackQueryWithMessage
 
 
 async def update_main_message(
     state: FSMContext,
-    message: MaybeInaccessibleMessageUnion,
+    event: MaybeInaccessibleMessageUnion | CallbackQueryWithMessage,
     text: str,
     reply_markup=None,
     create_new: bool = False,
     **kwargs,
 ) -> None:
-    if isinstance(message, InaccessibleMessage):
-        bot = message.bot
+    if isinstance(event, InaccessibleMessage):
+        bot = event.bot
         if bot:
             await bot.send_message(
-                chat_id=message.chat.id,
+                chat_id=event.chat.id,
                 text="Сообщение недоступно",
             )
         return
+    if isinstance(event, Message):
+        message = event
+    else:
+        message = event.message
 
     data = await state.get_data()
     main_message_id = data.get("main_message_id")
