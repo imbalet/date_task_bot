@@ -12,7 +12,11 @@ from date_task_bot.presentation.utils import (
 )
 from date_task_bot.repositories import UserRepository
 from date_task_bot.repositories.schemas import UserCreate
-from date_task_bot.use_cases import GetTimezoneUseCase, SetTimezoneUseCase
+from date_task_bot.use_cases import (
+    GetTimezoneUseCase,
+    RegisterUserUseCase,
+    SetTimezoneUseCase,
+)
 
 router = Router(name=__name__)
 
@@ -23,14 +27,24 @@ class TimeZoneCallback(CallbackData, prefix="tz"):
 
 @router.message(Command("start"))
 async def start(
-    message: Message, user_repository: UserRepository, state: FSMContext, chat_id: str
+    message: Message,
+    user_repository: UserRepository,
+    state: FSMContext,
+    chat_id: str,
+    register_user_uc: RegisterUserUseCase,
 ):
-    # TODO: create use case
-    user = await user_repository.get(id=chat_id)
-    if not user:
-        await user_repository.create(UserCreate(id=chat_id))
+    res = await register_user_uc.execute(data=UserCreate(id=chat_id))
+    text = "Привет, это бот для задач."
+    if res.user.settings:
+        text += (
+            f" Ваш текущий часовой пояс <code>{res.user.settings.timezone}</code>."
+            " Для смены используйте команду /timezone"
+        )
     await update_main_message(
-        state=state, message=message, text="Привет, это бот для задач", create_new=True
+        state=state,
+        message=message,
+        text=text,
+        create_new=True,
     )
 
 
