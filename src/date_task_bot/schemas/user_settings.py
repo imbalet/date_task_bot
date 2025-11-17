@@ -8,4 +8,4 @@ class UserSettings(BaseAppSchema):
     id: UUID
     user_id: str
     timezone: str
-    offsets_seconds: list[DefaultRemindTiming]
+    timings: list[DefaultRemindTiming]

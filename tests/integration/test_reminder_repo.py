@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
-from date_task_bot.models import RemindersOrm
+from date_task_bot.models import ReminderOrm
 from date_task_bot.repositories import ReminderRepository
 from date_task_bot.repositories.schemas import (
     ReminderCreate,
@@ -30,7 +30,7 @@ async def test_create(
     res = await reminder_repo.create(ReminderCreate.model_validate(reminder))
 
     from_db = ReminderResponse.model_validate(
-        await get_from_db_by_pk(async_session_factory, RemindersOrm, res.id)
+        await get_from_db_by_pk(async_session_factory, ReminderOrm, res.id)
     )
 
     assert res.remind_at == reminder.remind_at
@@ -71,8 +71,8 @@ async def test_reserve(
 
     res = await reminder_repo.reserve_due_reminders()
 
-    from_db: RemindersOrm = await get_from_db_by_pk(
-        async_session_factory, RemindersOrm, new_reminder.id
+    from_db: ReminderOrm = await get_from_db_by_pk(
+        async_session_factory, ReminderOrm, new_reminder.id
     )
 
     assert len(res) == 1
@@ -105,7 +105,7 @@ async def test_reserve_multiply(
 
     res = await reminder_repo.reserve_due_reminders()
 
-    from_db = await get_from_db_by_filter(async_session_factory, RemindersOrm)
+    from_db = await get_from_db_by_filter(async_session_factory, ReminderOrm)
 
     assert len(res) == 2
     assert from_db

@@ -1,6 +1,6 @@
 from date_task_bot.models import (
     DefaultRemindTimingOrm,
-    RemindersOrm,
+    ReminderOrm,
     TaskOrm,
     UserOrm,
     UserSettingsOrm,
@@ -32,9 +32,7 @@ def make_default_timing_orm(
 
 def make_user_settings_orm(user_settings: UserSettings, **kwargs) -> UserSettingsOrm:
     orm = UserSettingsOrm(
-        offsets_seconds=list(
-            map(make_default_timing_orm, user_settings.offsets_seconds)
-        ),
+        timings=list(map(make_default_timing_orm, user_settings.timings)),
         user_id=user_settings.user_id,
     )
     return _set_orm_fields(orm, kwargs)
@@ -48,8 +46,8 @@ def make_user_orm(user: User, **kwargs) -> UserOrm:
     return _set_orm_fields(orm, kwargs)
 
 
-def make_reminder_orm(reminder: Reminder, **kwargs) -> RemindersOrm:
-    orm = RemindersOrm(
+def make_reminder_orm(reminder: Reminder, **kwargs) -> ReminderOrm:
+    orm = ReminderOrm(
         remind_at=reminder.remind_at,
         offset_seconds=reminder.offset_seconds,
         task_id=reminder.task_id,

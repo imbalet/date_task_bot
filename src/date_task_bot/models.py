@@ -75,16 +75,16 @@ class UserSettingsOrm(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey(UserOrm.id, ondelete="CASCADE"))
     timezone: Mapped[str] = mapped_column(default="UTC")
 
-    offsets_seconds: Mapped[list[DefaultRemindTimingOrm]] = relationship(
+    timings: Mapped[list[DefaultRemindTimingOrm]] = relationship(
         cascade="all, delete-orphan", lazy="raise"
     )
 
     def __init__(
         self,
-        offsets_seconds: list[DefaultRemindTimingOrm] | None = None,
+        timings: list[DefaultRemindTimingOrm] | None = None,
         user_id: str | None = None,
     ):
-        self.offsets_seconds = offsets_seconds or [
+        self.timings = timings or [
             DefaultRemindTimingOrm(offset_seconds=t) for t in DEFAULT_OFFSETS
         ]
         if user_id:
@@ -126,7 +126,7 @@ class TaskOrm(Base):
     )
     edited_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
 
-    reminders: Mapped[list[RemindersOrm]] = relationship(
+    reminders: Mapped[list[ReminderOrm]] = relationship(
         cascade="all, delete-orphan", lazy="raise"
     )
 
@@ -135,7 +135,7 @@ class TaskOrm(Base):
         user_id: str,
         text: str,
         due_date: datetime,
-        reminders: list[RemindersOrm],
+        reminders: list[ReminderOrm],
     ):
         self.user_id = user_id
         self.text = text
@@ -143,7 +143,7 @@ class TaskOrm(Base):
         self.reminders = reminders
 
 
-class RemindersOrm(Base):
+class ReminderOrm(Base):
     __tablename__ = "reminders"
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     task_id: Mapped[UUID] = mapped_column(

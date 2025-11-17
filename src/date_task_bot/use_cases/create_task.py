@@ -57,7 +57,7 @@ class CreateTaskUseCase:
             user_id=user_id, load_offsets=True
         )
         reminders = self.create_reminders(
-            due_date=due_date_utc, timings=user_settings.offsets_seconds
+            due_date=due_date_utc, timings=user_settings.timings
         )
         task = await self.task_repo.create(
             TaskCreate(

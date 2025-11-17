@@ -20,7 +20,7 @@ class UserSettingsRepository(BaseRepository):
         async with self.session_factory() as session:
             options = []
             if load_offsets:
-                options.append(selectinload(UserSettingsOrm.offsets_seconds))
+                options.append(selectinload(UserSettingsOrm.timings))
             stmt = (
                 select(UserSettingsOrm)
                 .options(*options)

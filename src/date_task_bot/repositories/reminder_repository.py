@@ -5,7 +5,7 @@ from sqlalchemy import insert, select, text, update
 from sqlalchemy.exc import IntegrityError
 
 from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
-from date_task_bot.models import RemindersOrm, TaskOrm, UserSettingsOrm
+from date_task_bot.models import ReminderOrm, TaskOrm, UserSettingsOrm
 from date_task_bot.schemas import Reminder, ReminderStatus
 
 from .base_repository import BaseRepository
@@ -17,7 +17,7 @@ class ReminderRepository(BaseRepository):
     async def create(self, reminder: ReminderCreate) -> Reminder:
         async with self.session_factory() as session:
             try:
-                new = RemindersOrm(
+                new = ReminderOrm(
                     task_id=reminder.task_id,
                     remind_at=reminder.remind_at,
                     offset_seconds=reminder.offset_seconds,
@@ -33,7 +33,7 @@ class ReminderRepository(BaseRepository):
     async def bulk_create(self, reminders: list[ReminderCreate]) -> list[Reminder]:
         async with self.session_factory() as session:
             res = await session.execute(
-                insert(RemindersOrm).returning(RemindersOrm),
+                insert(ReminderOrm).returning(ReminderOrm),
                 [r.model_dump() for r in reminders],
             )
             result = res.scalars().all()
@@ -41,7 +41,7 @@ class ReminderRepository(BaseRepository):
 
     async def get(self, id: UUID) -> Reminder | None:
         async with self.session_factory() as session:
-            res = await session.get(RemindersOrm, id)
+            res = await session.get(ReminderOrm, id)
             if res is None:
                 return None
             return ReminderResponse.model_validate(res)
@@ -49,9 +49,9 @@ class ReminderRepository(BaseRepository):
     async def get_by_task_id(self, task_id: str) -> list[Reminder]:
         async with self.session_factory() as session:
             stmt = (
-                select(RemindersOrm)
-                .where(RemindersOrm.task_id == task_id)
-                .order_by(RemindersOrm.remind_at.desc())
+                select(ReminderOrm)
+                .where(ReminderOrm.task_id == task_id)
+                .order_by(ReminderOrm.remind_at.desc())
             )
             res = await session.execute(stmt)
             result = res.scalars().all()
@@ -60,10 +60,10 @@ class ReminderRepository(BaseRepository):
     async def set_status(self, id: UUID, status: ReminderStatus) -> Reminder | None:
         async with self.session_factory() as session:
             stmt = (
-                update(RemindersOrm)
-                .where(RemindersOrm.id == id)
+                update(ReminderOrm)
+                .where(ReminderOrm.id == id)
                 .values(status=status)
-                .returning(RemindersOrm)
+                .returning(ReminderOrm)
             )
             res = await session.execute(stmt)
             await session.commit()
@@ -76,21 +76,21 @@ class ReminderRepository(BaseRepository):
                 now = datetime.now(UTC)
                 select_stmt = (
                     select(
-                        RemindersOrm.id.label("id"),
-                        RemindersOrm.remind_at.label("remind_at"),
-                        RemindersOrm.offset_seconds.label("offset_seconds"),
+                        ReminderOrm.id.label("id"),
+                        ReminderOrm.remind_at.label("remind_at"),
+                        ReminderOrm.offset_seconds.label("offset_seconds"),
                         TaskOrm.user_id.label("user_id"),
                         TaskOrm.text.label("text"),
                         TaskOrm.due_date.label("due_date"),
                         UserSettingsOrm.timezone.label("timezone"),
                     )
-                    .join(TaskOrm, TaskOrm.id == RemindersOrm.task_id)
+                    .join(TaskOrm, TaskOrm.id == ReminderOrm.task_id)
                     .join(UserSettingsOrm, UserSettingsOrm.user_id == TaskOrm.user_id)
                     .where(
-                        RemindersOrm.status == ReminderStatus.PENDING,
-                        RemindersOrm.remind_at <= now,
+                        ReminderOrm.status == ReminderStatus.PENDING,
+                        ReminderOrm.remind_at <= now,
                     )
-                    .order_by(RemindersOrm.remind_at)
+                    .order_by(ReminderOrm.remind_at)
                     .limit(limit)
                 )
                 select_res = await session.execute(select_stmt)
@@ -99,8 +99,8 @@ class ReminderRepository(BaseRepository):
 
                 await session.execute(text("BEGIN IMMEDIATE"))
                 update_stmt = (
-                    update(RemindersOrm)
-                    .where(RemindersOrm.id.in_(ids))
+                    update(ReminderOrm)
+                    .where(ReminderOrm.id.in_(ids))
                     .values(status=ReminderStatus.PROCESSING)
                 )
                 await session.execute(update_stmt)

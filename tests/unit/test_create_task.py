@@ -38,9 +38,7 @@ async def test_creating_task(
 
     assert all(
         used.offset_seconds == actual.offset_seconds
-        for used, actual in zip(
-            used_reminders, user_settings_response_schema.offsets_seconds
-        )
+        for used, actual in zip(used_reminders, user_settings_response_schema.timings)
     )
     assert all(
         i.remind_at <= task_create_with_reminders_schema.due_date
@@ -63,7 +61,7 @@ async def test_creating_task_reminders_in_the_past(
 
     task.due_date = now + timedelta(hours=2)
 
-    user_settings_response_schema.offsets_seconds = [
+    user_settings_response_schema.timings = [
         make_default_remind_timing(offset_seconds=timedelta(hours=-1)),
         make_default_remind_timing(offset_seconds=timedelta(hours=-3)),
     ]
@@ -82,9 +80,7 @@ async def test_creating_task_reminders_in_the_past(
 
     assert all(
         used.offset_seconds == actual.offset_seconds
-        for used, actual in zip(
-            used_reminders, user_settings_response_schema.offsets_seconds
-        )
+        for used, actual in zip(used_reminders, user_settings_response_schema.timings)
     )
     assert all(i.remind_at <= task.due_date for i in used_reminders)
     assert any(i.remind_at < task.due_date for i in used_reminders)

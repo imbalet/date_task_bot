@@ -5,7 +5,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
 from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
-from date_task_bot.models import RemindersOrm, TaskOrm
+from date_task_bot.models import ReminderOrm, TaskOrm
 from date_task_bot.schemas import Task
 
 from .base_repository import BaseRepository
@@ -22,7 +22,7 @@ class TaskRepository(BaseRepository):
                     text=task.text,
                     due_date=task.due_date,
                     reminders=[
-                        RemindersOrm(
+                        ReminderOrm(
                             remind_at=rem.remind_at, offset_seconds=rem.offset_seconds
                         )
                         for rem in task.reminders

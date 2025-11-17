@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from date_task_bot.models import (
     Base,
-    RemindersOrm,
+    ReminderOrm,
     TaskOrm,
     UserOrm,
 )
@@ -132,7 +132,7 @@ async def task_without_reminders_in_db(
 
 
 @pytest.fixture
-def reminder_orm() -> RemindersOrm:
+def reminder_orm() -> ReminderOrm:
     reminder = make_reminder()
     return make_reminder_orm(reminder)
 
@@ -140,7 +140,7 @@ def reminder_orm() -> RemindersOrm:
 @pytest.fixture
 async def reminder_in_db(
     async_session_factory,
-    reminder_orm: RemindersOrm,
+    reminder_orm: ReminderOrm,
     task_without_reminders_in_db: TaskResponse,
 ) -> ReminderResponse:
     reminder_orm.task_id = task_without_reminders_in_db.id

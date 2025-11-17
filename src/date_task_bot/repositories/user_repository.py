@@ -48,9 +48,7 @@ class UserRepository(BaseRepository):
                 options.append(selectinload(UserOrm.settings))
             if load_offsets:
                 options.append(
-                    selectinload(UserOrm.settings).selectinload(
-                        UserSettingsOrm.offsets_seconds
-                    )
+                    selectinload(UserOrm.settings).selectinload(UserSettingsOrm.timings)
                 )
 
             res = await session.get(UserOrm, id, options=options)
