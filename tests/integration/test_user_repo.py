@@ -7,6 +7,7 @@ from date_task_bot.models import UserOrm, UserSettingsOrm
 from date_task_bot.repositories import UserRepository
 from date_task_bot.repositories.schemas import UserCreate, UserResponse
 from date_task_bot.repositories.schemas.task import TaskResponse
+from tests.factories import make_user, make_user_orm
 from tests.integration.utils import (
     create_entity,
     get_from_db_by_filter,
@@ -15,7 +16,7 @@ from tests.integration.utils import (
 
 
 async def test_create(
-    user_repo: UserRepository, async_session_factory, user_create_schema: UserCreate
+    user_repo: UserRepository, async_session_factory, user_create_schema
 ):
     res = await user_repo.create(user_create_schema)
 
@@ -35,12 +36,11 @@ async def test_create(
     assert res.id == from_db.id
 
 
-async def test_create_already_exists(
-    user_repo: UserRepository, async_session_factory, user_create_schema: UserCreate
-):
-    await create_entity(async_session_factory, UserOrm(id=user_create_schema.id))
+async def test_create_already_exists(user_repo: UserRepository, async_session_factory):
+    user = make_user()
+    await create_entity(async_session_factory, make_user_orm(user))
     with pytest.raises(AlreadyExistsException):
-        await user_repo.create(user_create_schema)
+        await user_repo.create(UserCreate.model_validate(user))
 
 
 async def test_get(
@@ -87,9 +87,7 @@ async def test_get_load_tasks_reminders(
     assert len(res.tasks[0].reminders) > 0
 
 
-async def test_get_not_exists(
-    user_repo: UserRepository, user_create_schema: UserCreate
-):
-    res = await user_repo.get(user_create_schema.id)
+async def test_get_not_exists(user_repo: UserRepository):
+    res = await user_repo.get("non existing id")
 
     assert res is None

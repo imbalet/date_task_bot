@@ -1,39 +1,45 @@
-from copy import deepcopy
 from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from date_task_bot.models import RemindersOrm
 from date_task_bot.repositories import ReminderRepository
 from date_task_bot.repositories.schemas import (
+    ReminderCreate,
     ReminderResponse,
     TaskResponse,
-    UserResponse,
 )
-from date_task_bot.repositories.schemas.reminder import ReminderCreateForTask
 from date_task_bot.schemas import ReminderStatus
-from tests.integration.utils import create_entity, get_from_db_by_pk
+from tests.factories import (
+    make_reminder,
+    make_reminder_orm,
+)
+from tests.integration.utils import (
+    create_entity,
+    get_from_db_by_filter,
+    get_from_db_by_pk,
+)
 
 
 async def test_create(
     reminder_repo: ReminderRepository,
-    task_in_db: TaskResponse,
+    task_without_reminders_in_db: TaskResponse,
     async_session_factory,
-    reminder_create_for_task_schema: ReminderCreateForTask,
 ):
-    res = await reminder_repo.create(reminder_create_for_task_schema)
+    reminder = make_reminder(task_id=task_without_reminders_in_db.id)
+
+    res = await reminder_repo.create(ReminderCreate.model_validate(reminder))
 
     from_db = ReminderResponse.model_validate(
         await get_from_db_by_pk(async_session_factory, RemindersOrm, res.id)
     )
 
-    assert res.remind_at == reminder_create_for_task_schema.remind_at
-    assert res.task_id == reminder_create_for_task_schema.task_id
+    assert res.remind_at == reminder.remind_at
+    assert res.task_id == reminder.task_id
     assert res.id == from_db.id
 
 
 async def test_get(
     reminder_repo: ReminderRepository,
-    task_in_db: UserResponse,
     reminder_in_db: ReminderResponse,
 ):
     res = await reminder_repo.get(reminder_in_db.id)
@@ -52,14 +58,15 @@ async def test_reserve(
     reminder_repo: ReminderRepository,
     async_session_factory,
     task_without_reminders_in_db: TaskResponse,
-    reminder_orm: RemindersOrm,
 ):
-    reminder_orm.task_id = task_without_reminders_in_db.id
-    reminder_orm.remind_at = datetime.now(UTC) - timedelta(hours=1)
-    reminder_orm.offset_seconds = timedelta(hours=1)
-
+    delta = timedelta(hours=-1)
+    reminder = make_reminder(
+        task_id=task_without_reminders_in_db.id,
+        remind_at=datetime.now(UTC) + delta,
+        offset_seconds=delta,
+    )
     new_reminder = ReminderResponse.model_validate(
-        await create_entity(async_session_factory, reminder_orm)
+        await create_entity(async_session_factory, make_reminder_orm(reminder))
     )
 
     res = await reminder_repo.reserve_due_reminders()
@@ -78,40 +85,54 @@ async def test_reserve_multiply(
     reminder_repo: ReminderRepository,
     async_session_factory,
     task_without_reminders_in_db: TaskResponse,
-    reminder_orm: RemindersOrm,
 ):
-    reminder_orm.task_id = task_without_reminders_in_db.id
-    reminder_orm.remind_at = datetime.now(UTC) - timedelta(hours=1)
-    reminder_orm.offset_seconds = timedelta(hours=1)
+    delta1 = timedelta(hours=-1)
+    reminder1 = make_reminder(
+        task_id=task_without_reminders_in_db.id,
+        remind_at=datetime.now(UTC) + delta1,
+        offset_seconds=delta1,
+    )
 
-    reminder_orm1 = deepcopy(reminder_orm)
-    reminder_orm1.remind_at = datetime.now(UTC) - timedelta(hours=2)
-    reminder_orm1.offset_seconds = timedelta(hours=2)
+    delta2 = timedelta(hours=-2)
+    reminder2 = make_reminder(
+        task_id=task_without_reminders_in_db.id,
+        remind_at=datetime.now(UTC) + delta2,
+        offset_seconds=delta2,
+    )
 
-    await create_entity(async_session_factory, reminder_orm)
-    await create_entity(async_session_factory, reminder_orm1)
+    await create_entity(async_session_factory, make_reminder_orm(reminder1))
+    await create_entity(async_session_factory, make_reminder_orm(reminder2))
 
     res = await reminder_repo.reserve_due_reminders()
 
+    from_db = await get_from_db_by_filter(async_session_factory, RemindersOrm)
+
     assert len(res) == 2
+    assert from_db
+    assert all(rem.status == ReminderStatus.PROCESSING for rem in from_db)
 
 
 async def test_reserve_multiply_limit(
     reminder_repo: ReminderRepository,
     async_session_factory,
     task_without_reminders_in_db: TaskResponse,
-    reminder_orm: RemindersOrm,
 ):
-    reminder_orm.task_id = task_without_reminders_in_db.id
-    reminder_orm.remind_at = datetime.now(UTC) - timedelta(hours=1)
-    reminder_orm.offset_seconds = timedelta(hours=1)
+    delta1 = timedelta(hours=-1)
+    reminder1 = make_reminder(
+        task_id=task_without_reminders_in_db.id,
+        remind_at=datetime.now(UTC) + delta1,
+        offset_seconds=delta1,
+    )
 
-    reminder_orm1 = deepcopy(reminder_orm)
-    reminder_orm1.remind_at = datetime.now(UTC) - timedelta(hours=2)
-    reminder_orm1.offset_seconds = timedelta(hours=2)
+    delta2 = timedelta(hours=-2)
+    reminder2 = make_reminder(
+        task_id=task_without_reminders_in_db.id,
+        remind_at=datetime.now(UTC) + delta2,
+        offset_seconds=delta2,
+    )
 
-    await create_entity(async_session_factory, reminder_orm)
-    await create_entity(async_session_factory, reminder_orm1)
+    await create_entity(async_session_factory, make_reminder_orm(reminder1))
+    await create_entity(async_session_factory, make_reminder_orm(reminder2))
 
     res = await reminder_repo.reserve_due_reminders(limit=1)
 
@@ -122,7 +143,6 @@ async def test_reserve_multiply_with_other_statuses(
     reminder_repo: ReminderRepository,
     async_session_factory,
     task_without_reminders_in_db: TaskResponse,
-    reminder_orm: RemindersOrm,
 ):
     # TODO: add factory
     for idx, status in enumerate(
@@ -133,12 +153,16 @@ async def test_reserve_multiply_with_other_statuses(
             ReminderStatus.SENT,
         ]
     ):
-        orm_model = deepcopy(reminder_orm)
-        orm_model.task_id = task_without_reminders_in_db.id
-        orm_model.remind_at = datetime.now(UTC) - timedelta(hours=idx)
-        orm_model.offset_seconds = timedelta(hours=idx)
-        orm_model.status = status
-        await create_entity(async_session_factory, orm_model)
+        delta = timedelta(hours=-1 * idx)
+        reminder = make_reminder(
+            task_id=task_without_reminders_in_db.id,
+            remind_at=datetime.now(UTC) + delta,
+            offset_seconds=delta,
+            status=status,
+        )
+        await create_entity(
+            async_session_factory, make_reminder_orm(reminder, status=status)
+        )
 
     res = await reminder_repo.reserve_due_reminders()
 

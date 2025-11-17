@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -16,14 +16,20 @@ from date_task_bot.repositories import (
     UserSettingsRepository,
 )
 from date_task_bot.repositories.schemas import (
-    ReminderCreate,
     ReminderResponse,
-    TaskCreate,
     TaskResponse,
-    UserCreate,
     UserResponse,
 )
+from date_task_bot.schemas.task import Task
 from tests.config import get_config
+from tests.factories import (
+    make_reminder,
+    make_reminder_orm,
+    make_task,
+    make_task_orm,
+    make_user,
+    make_user_orm,
+)
 from tests.integration.utils import create_entity
 
 
@@ -77,8 +83,9 @@ def user_settings_repo(async_session_factory) -> UserSettingsRepository:
 
 
 @pytest.fixture
-def user_orm(user_create_schema: UserCreate):
-    return UserOrm(id=user_create_schema.id)
+def user_orm(user_id: str) -> UserOrm:
+    user = make_user(id=user_id)
+    return make_user_orm(user)
 
 
 @pytest.fixture
@@ -91,31 +98,20 @@ async def user_in_db(async_session_factory, user_orm: UserOrm) -> UserResponse:
 
 
 @pytest.fixture
-def task_orm(
-    task_without_reminders_orm: TaskOrm,
-    sample_reminders: list[ReminderCreate],
-):
-    return TaskOrm(
-        user_id=task_without_reminders_orm.user_id,
-        text=task_without_reminders_orm.text,
-        due_date=task_without_reminders_orm.due_date,
-        reminders=[
-            RemindersOrm(remind_at=r.remind_at, offset_seconds=r.offset_seconds)
-            for r in sample_reminders
-        ],
-    )
+def task_orm(user_id: str) -> TaskOrm:
+    reminders = [
+        make_reminder(offset_seconds=timedelta(hours=-1)),
+        make_reminder(offset_seconds=timedelta(hours=-2)),
+    ]
+    task = make_task(user_id=user_id, reminders=reminders)
+    return make_task_orm(task)
 
 
 @pytest.fixture
 def task_without_reminders_orm(
-    user_in_db: UserResponse, task_create_schema: TaskCreate, fixed_now: datetime
-):
-    return TaskOrm(
-        user_id=user_in_db.id,
-        text=task_create_schema.text,
-        due_date=fixed_now,
-        reminders=[],
-    )
+    user_in_db: UserResponse, task_response_schema: Task
+) -> TaskOrm:
+    return make_task_orm(task_response_schema)
 
 
 @pytest.fixture
@@ -136,14 +132,9 @@ async def task_without_reminders_in_db(
 
 
 @pytest.fixture
-def reminder_orm(
-    reminder_create_schema: ReminderCreate,
-    default_offset_seconds: timedelta,
-):
-    return RemindersOrm(
-        remind_at=reminder_create_schema.remind_at,
-        offset_seconds=default_offset_seconds,
-    )
+def reminder_orm() -> RemindersOrm:
+    reminder = make_reminder()
+    return make_reminder_orm(reminder)
 
 
 @pytest.fixture

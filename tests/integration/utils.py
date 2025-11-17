@@ -15,11 +15,13 @@ async def get_from_db_by_pk(
 async def get_from_db_by_filter(
     async_session_factory: async_sessionmaker[AsyncSession],
     orm_model,
-    filters,
+    filters=None,
     scalar: bool = False,
 ):
     async with async_session_factory() as session:
-        stmt = select(orm_model).where(*filters)
+        stmt = select(orm_model)
+        if filters:
+            stmt = stmt.where(*filters)
         res = await session.execute(stmt)
         if scalar:
             return res.scalar_one_or_none()

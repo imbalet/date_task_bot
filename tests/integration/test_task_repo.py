@@ -1,11 +1,10 @@
-import asyncio
-from copy import deepcopy
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from date_task_bot.models import TaskOrm
 from date_task_bot.repositories import TaskRepository
 from date_task_bot.repositories.schemas import TaskCreate, TaskResponse, UserResponse
+from tests.factories import make_task, make_task_orm
 from tests.integration.utils import create_entity, get_from_db_by_pk
 
 
@@ -13,16 +12,16 @@ async def test_create(
     task_repo: TaskRepository,
     user_in_db: UserResponse,
     async_session_factory,
-    task_create_schema: TaskCreate,
 ):
-    res = await task_repo.create(task_create_schema)
+    task = make_task(user_id=user_in_db.id)
+    res = await task_repo.create(TaskCreate.model_validate(task))
 
     from_db = TaskResponse.model_validate(
         await get_from_db_by_pk(async_session_factory, TaskOrm, res.id)
     )
 
-    assert res.text == task_create_schema.text
-    assert res.user_id == task_create_schema.user_id
+    assert res.text == task.text
+    assert res.user_id == task.user_id
     assert res.created_at <= datetime.now(UTC)
     assert res.id == from_db.id
 
@@ -61,9 +60,15 @@ async def test_get_by_user_id(
     async_session_factory,
     task_orm: TaskOrm,
 ):
-    created1: TaskOrm = await create_entity(async_session_factory, deepcopy(task_orm))
-    await asyncio.sleep(1)
-    created2: TaskOrm = await create_entity(async_session_factory, deepcopy(task_orm))
+    now = datetime.now(UTC)
+    task = make_task(user_id=user_in_db.id)
+    created1: TaskOrm = await create_entity(
+        async_session_factory, make_task_orm(task, created_at=now)
+    )
+    created2: TaskOrm = await create_entity(
+        async_session_factory,
+        make_task_orm(task, created_at=now + timedelta(minutes=1)),
+    )
 
     res = await task_repo.get_by_user_id(user_in_db.id)
 
