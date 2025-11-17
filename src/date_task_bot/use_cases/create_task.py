@@ -6,7 +6,7 @@ from date_task_bot.repositories import (
     UserSettingsRepository,
 )
 from date_task_bot.repositories.schemas import ReminderCreate, TaskCreate
-from date_task_bot.schemas import Task
+from date_task_bot.schemas import DefaultRemindTiming, Task
 
 
 @dataclass
@@ -21,6 +21,23 @@ class CreateTaskUseCase:
     ) -> None:
         self.task_repo = task_repo
         self.user_settings_repo = user_settings_repo
+
+    @staticmethod
+    def create_reminders(due_date: datetime, timings: list[DefaultRemindTiming]):
+        reminders = []
+        now = datetime.now(UTC)
+
+        for timing in timings:
+            remind_at = due_date + timing.offset_seconds
+            if remind_at <= now:
+                continue
+
+            reminders.append(
+                ReminderCreate(
+                    remind_at=remind_at, offset_seconds=timing.offset_seconds
+                )
+            )
+        return reminders
 
     async def execute(
         self, user_id: str, text: str, due_date: datetime
@@ -39,13 +56,9 @@ class CreateTaskUseCase:
         user_settings = await self.user_settings_repo.get_by_user_id(
             user_id=user_id, load_offsets=True
         )
-        reminders = [
-            ReminderCreate(
-                remind_at=due_date_utc + t.offset_seconds,
-                offset_seconds=t.offset_seconds,
-            )
-            for t in user_settings.offsets_seconds
-        ]
+        reminders = self.create_reminders(
+            due_date=due_date_utc, timings=user_settings.offsets_seconds
+        )
         task = await self.task_repo.create(
             TaskCreate(
                 user_id=user_id,
