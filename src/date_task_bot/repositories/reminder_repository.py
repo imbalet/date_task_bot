@@ -9,12 +9,12 @@ from date_task_bot.models import RemindersOrm, TaskOrm, UserSettingsOrm
 from date_task_bot.schemas import Reminder, ReminderStatus
 
 from .base_repository import BaseRepository
-from .schemas import DueReminder, ReminderCreateForTask, ReminderResponse
+from .schemas import DueReminder, ReminderCreate, ReminderResponse
 
 
 class ReminderRepository(BaseRepository):
 
-    async def create(self, reminder: ReminderCreateForTask) -> Reminder:
+    async def create(self, reminder: ReminderCreate) -> Reminder:
         async with self.session_factory() as session:
             try:
                 new = RemindersOrm(
@@ -30,9 +30,7 @@ class ReminderRepository(BaseRepository):
                 await session.rollback()
                 raise AppException(UNEXPECTED_ERROR)
 
-    async def bulk_create(
-        self, reminders: list[ReminderCreateForTask]
-    ) -> list[Reminder]:
+    async def bulk_create(self, reminders: list[ReminderCreate]) -> list[Reminder]:
         async with self.session_factory() as session:
             res = await session.execute(
                 insert(RemindersOrm).returning(RemindersOrm),

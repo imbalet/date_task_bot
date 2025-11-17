@@ -1,21 +1,10 @@
 from datetime import UTC, datetime, timedelta
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import pytest
 
-from date_task_bot.repositories.schemas import (
-    ReminderCreate,
-    ReminderCreateForTask,
-    TaskCreate,
-    UserCreate,
-)
-from date_task_bot.schemas import (
-    DefaultRemindTiming,
-    Task,
-    TaskStatus,
-    User,
-    UserSettings,
-)
+from date_task_bot.repositories.schemas import TaskCreate, UserCreate
+from tests.factories import make_reminder, make_task, make_user, make_user_settings
 
 
 @pytest.fixture
@@ -38,127 +27,37 @@ def timezone():
     return "UTC"
 
 
-# User settings
-
-
-@pytest.fixture
-def user_settings_empty_response_schema(fixed_uuid: UUID, user_id: str, timezone: str):
-    return UserSettings(
-        id=fixed_uuid, user_id=user_id, timezone=timezone, offsets_seconds=[]
-    )
-
-
-@pytest.fixture
-def user_settings_response_schema(
-    fixed_uuid: UUID,
-    user_id: str,
-    timezone: str,
-    sample_default_timings_response: list[DefaultRemindTiming],
-):
-    return UserSettings(
-        id=fixed_uuid,
-        user_id=user_id,
-        timezone=timezone,
-        offsets_seconds=sample_default_timings_response,
-    )
-
-
 # User
+@pytest.fixture
+def user_create_schema() -> UserCreate:
+    return UserCreate.model_validate(make_user())
 
 
 @pytest.fixture
-def user_create_schema(user_id: str):
-    return UserCreate(id=user_id)
+def user_response_schema(user_id: str):
+    return make_user(id=user_id, use_default_settings=True)
 
 
 @pytest.fixture
-def user_response_schema(
-    user_create_schema: UserCreate,
-    fixed_now: datetime,
-    user_settings_empty_response_schema: UserSettings,
-):
-    return User(
-        id=user_create_schema.id,
-        created_at=fixed_now,
-        tasks=[],
-        settings=user_settings_empty_response_schema,
-    )
-
-
-# Timings
-
-
-@pytest.fixture
-def sample_default_timings_response(fixed_uuid):
-    return [
-        DefaultRemindTiming(
-            id=uuid4(), settings_id=fixed_uuid, offset_seconds=timedelta(days=-1)
-        ),
-        DefaultRemindTiming(
-            id=uuid4(), settings_id=fixed_uuid, offset_seconds=timedelta(hours=-1)
-        ),
-    ]
+def user_settings_response_schema():
+    return make_user_settings(use_default_offsets=True)
 
 
 # Task
 
 
 @pytest.fixture
-def task_create_schema(user_create_schema: UserCreate, fixed_now: datetime):
-    return TaskCreate(
-        user_id=user_create_schema.id,
-        due_date=fixed_now,
-        text="text",
-        reminders=[],
-    )
-
-
-@pytest.fixture
-def task_response_schema(
-    task_create_schema: TaskCreate, fixed_uuid: UUID, user_id: str, fixed_now: datetime
-):
-    return Task(
-        id=fixed_uuid,
-        user_id=user_id,
-        text=task_create_schema.text,
-        due_date=task_create_schema.due_date,
-        status=TaskStatus.PENDING,
-        created_at=fixed_now,
-        edited_at=None,
-        reminders=[],
-    )
-
-
-# Reminder
-
-
-@pytest.fixture
-def default_offset_seconds():
-    return timedelta(hours=-3)
-
-
-@pytest.fixture
-def reminder_create_schema(fixed_now: datetime, default_offset_seconds: timedelta):
-    return ReminderCreate(remind_at=fixed_now, offset_seconds=default_offset_seconds)
-
-
-@pytest.fixture
-def reminder_create_for_task_schema(
-    fixed_uuid: UUID, fixed_now: datetime, default_offset_seconds: timedelta
-):
-    return ReminderCreateForTask(
-        task_id=fixed_uuid, remind_at=fixed_now, offset_seconds=default_offset_seconds
-    )
-
-
-@pytest.fixture
-def sample_reminders(
-    sample_default_timings_response: list[DefaultRemindTiming],
-    fixed_now: datetime,
-):
-    return [
-        ReminderCreate(
-            remind_at=fixed_now + i.offset_seconds, offset_seconds=i.offset_seconds
+def task_create_with_reminders_schema() -> TaskCreate:
+    reminders = [make_reminder(offset_seconds=timedelta(hours=-i)) for i in range(3)]
+    return TaskCreate.model_validate(
+        make_task(
+            due_date=datetime.now(UTC) + timedelta(days=1),
+            reminders=reminders,
+            prefer_offset=True,
         )
-        for i in sample_default_timings_response
-    ]
+    )
+
+
+@pytest.fixture
+def task_response_schema(user_id: str):
+    return make_task(user_id=user_id)
