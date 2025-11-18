@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
@@ -9,7 +9,7 @@ from date_task_bot.models import ReminderOrm, TaskOrm
 from date_task_bot.schemas import Task
 
 from .base_repository import BaseRepository
-from .schemas import TaskCreate, TaskResponse
+from .schemas import PaginationResponse, TaskCreate, TaskPaginationRequest, TaskResponse
 
 
 class TaskRepository(BaseRepository):
@@ -48,18 +48,42 @@ class TaskRepository(BaseRepository):
             return TaskResponse.model_validate(res)
 
     async def get_by_user_id(
-        self, user_id: str, load_reminders: bool = False
-    ) -> list[Task]:
+        self,
+        pagination_request: TaskPaginationRequest,
+        load_reminders: bool = False,
+    ) -> PaginationResponse[Task]:
         async with self.session_factory() as session:
             options = []
             if load_reminders:
                 options.append(selectinload(TaskOrm.reminders))
+
+            total_col = func.count().over()
+
             stmt = (
-                select(TaskOrm)
+                select(TaskOrm, total_col.label("total_items"))
                 .options(*options)
-                .where(TaskOrm.user_id == user_id)
+                .where(TaskOrm.user_id == pagination_request.user_id)
                 .order_by(TaskOrm.created_at.desc())
+                .limit(pagination_request.limit)
+                .offset(pagination_request.offset)
             )
             res = await session.execute(stmt)
-            result = res.scalars().all()
-            return [TaskResponse.model_validate(i) for i in result]
+            rows = res.all()
+
+            if not rows:
+                return PaginationResponse(
+                    page=pagination_request.page,
+                    page_size=pagination_request.page_size,
+                    total_items=0,
+                    items=[],
+                )
+
+            tasks: list[Task] = [TaskResponse.model_validate(row[0]) for row in rows]
+            total_items = rows[0].total_items
+
+            return PaginationResponse(
+                page=pagination_request.page,
+                page_size=pagination_request.page_size,
+                total_items=total_items,
+                items=tasks,
+            )

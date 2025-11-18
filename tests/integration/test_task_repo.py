@@ -3,7 +3,12 @@ from uuid import UUID
 
 from date_task_bot.models import TaskOrm
 from date_task_bot.repositories import TaskRepository
-from date_task_bot.repositories.schemas import TaskCreate, TaskResponse, UserResponse
+from date_task_bot.repositories.schemas import (
+    TaskCreate,
+    TaskPaginationRequest,
+    TaskResponse,
+    UserResponse,
+)
 from tests.factories import make_task, make_task_orm
 from tests.integration.utils import create_entity, get_from_db_by_pk
 
@@ -58,7 +63,6 @@ async def test_get_by_user_id(
     task_repo: TaskRepository,
     user_in_db: UserResponse,
     async_session_factory,
-    task_orm: TaskOrm,
 ):
     now = datetime.now(UTC)
     task = make_task(user_id=user_in_db.id)
@@ -70,8 +74,55 @@ async def test_get_by_user_id(
         make_task_orm(task, created_at=now + timedelta(minutes=1)),
     )
 
-    res = await task_repo.get_by_user_id(user_in_db.id)
+    res = await task_repo.get_by_user_id(
+        TaskPaginationRequest(user_id=user_in_db.id, page=1, page_size=2)
+    )
 
-    assert len(res) == 2
-    assert res[0].id == created2.id
-    assert res[1].id == created1.id
+    assert res.total_items == 2
+    assert len(res.items) == 2
+    assert res.items[0].id == created2.id
+    assert res.items[1].id == created1.id
+
+
+async def test_get_by_user_id_pagination(
+    task_repo: TaskRepository,
+    user_in_db: UserResponse,
+    async_session_factory,
+):
+    now = datetime.now(UTC)
+    task = make_task(user_id=user_in_db.id)
+    created1: TaskOrm = await create_entity(
+        async_session_factory, make_task_orm(task, created_at=now)
+    )
+    created2: TaskOrm = await create_entity(
+        async_session_factory,
+        make_task_orm(task, created_at=now + timedelta(minutes=1)),
+    )
+
+    res = await task_repo.get_by_user_id(
+        TaskPaginationRequest(user_id=user_in_db.id, page=1, page_size=1)
+    )
+
+    assert res.total_items == 2
+    assert len(res.items) == 1
+    assert res.items[0].id == created2.id
+
+    res = await task_repo.get_by_user_id(
+        TaskPaginationRequest(user_id=user_in_db.id, page=2, page_size=1)
+    )
+
+    assert res.total_items == 2
+    assert len(res.items) == 1
+    assert res.items[0].id == created1.id
+
+
+async def test_get_by_user_id_empty(
+    task_repo: TaskRepository,
+    user_in_db: UserResponse,
+):
+    res = await task_repo.get_by_user_id(
+        TaskPaginationRequest(user_id=user_in_db.id, page=1, page_size=1)
+    )
+
+    assert res.total_items == 0
+    assert len(res.items) == 0

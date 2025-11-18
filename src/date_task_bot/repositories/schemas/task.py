@@ -5,6 +5,7 @@ from pydantic import Field, field_validator
 from date_task_bot.schemas import Reminder, Task
 
 from .base_schema import AwareDatetime, OptionalAwareDatetime, RepositoryDTO
+from .pagination import PaginationRequest
 from .reminder import ReminderCreate, ReminderResponse
 
 
@@ -26,3 +27,7 @@ class TaskResponse(Task, RepositoryDTO):
         if not v:
             return []
         return [ReminderResponse.model_validate(item) for item in v]
+
+
+class TaskPaginationRequest(PaginationRequest):
+    user_id: str
