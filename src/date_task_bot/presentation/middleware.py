@@ -12,6 +12,7 @@ from date_task_bot.repositories import (
 )
 from date_task_bot.use_cases import (
     CreateTaskUseCase,
+    GetAllTasksUseCase,
     GetTimezoneUseCase,
     ParseDateTimeUseCase,
     RegisterUserUseCase,
@@ -68,6 +69,7 @@ class DIMiddleware(BaseMiddleware):
             task_repo=task_repo, user_settings_repo=user_settings_repo
         )
         data["register_user_uc"] = RegisterUserUseCase(user_repo=user_repo)
+        data["get_all_tasks_uc"] = GetAllTasksUseCase(task_repo=task_repo)
 
         return await handler(event, data)
 

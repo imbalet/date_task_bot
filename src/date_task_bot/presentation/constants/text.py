@@ -5,6 +5,8 @@ class MsgKey(str, Enum):
     CANCEL = "cancel"
     BACK = "back"
     CONFIRM = "confirm"
+    NEXT = "next"
+    PREV = "prev"
 
 
 TEXT: dict[MsgKey, str] = {

@@ -18,7 +18,11 @@ from date_task_bot.presentation.middleware import (
     CallbackMessageMiddleware,
     DIMiddleware,
 )
-from date_task_bot.presentation.routers import commands_router, create_task_router
+from date_task_bot.presentation.routers import (
+    commands_router,
+    create_task_router,
+    view_tasks_router,
+)
 from date_task_bot.presentation.services import Sender
 from date_task_bot.reminder import Reminder
 from date_task_bot.repositories import ReminderRepository
@@ -48,6 +52,7 @@ async def main() -> None:
 
     await bot(DeleteWebhook(drop_pending_updates=True))
     dp.include_router(commands_router)
+    dp.include_router(view_tasks_router)
     dp.include_router(create_task_router)
 
     engine, sessionmaker = await get_sessionmaker()

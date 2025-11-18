@@ -28,6 +28,7 @@ async def update_main_message(
         message = event
     else:
         message = event.message
+        await event.answer()
 
     data = await state.get_data()
     main_message_id = data.get("main_message_id")

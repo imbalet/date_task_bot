@@ -20,9 +20,7 @@ class PaginationRequest(BaseModel):
 T = TypeVar("T")
 
 
-class PaginationResponse(BaseModel, Generic[T]):
-    page: int
-    page_size: int
+class PaginationResponse(PaginationRequest, Generic[T]):
     total_items: int
     items: list[T]
 

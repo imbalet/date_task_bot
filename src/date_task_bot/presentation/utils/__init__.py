@@ -4,6 +4,7 @@ from .formatters import (
     DueReminderFormatter,
     ReminderFormatter,
     TaskFormatter,
+    TaskListFormatter,
 )
 from .keyboard_builder import KeyboardBuilder
 from .update_message import update_main_message
@@ -16,4 +17,5 @@ __all__ = [
     "DueReminderFormatter",
     "ReminderFormatter",
     "TaskFormatter",
+    "TaskListFormatter",
 ]

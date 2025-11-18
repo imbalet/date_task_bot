@@ -38,6 +38,19 @@ class InlineKeyboardFactory:
             self.button(text=text, callback_data=callback)
         return self
 
+    def buttons_text_tuple(
+        self, *buttons: tuple[str, CallbackData]
+    ) -> "InlineKeyboardFactory":
+        """Adds buttons from tuples.
+
+        Args:
+            *buttons (tuple[str, CallbackData]): tuples with text and callback.
+
+        """
+        for text, callback in buttons:
+            self.button_text(text=text, callback_data=callback)
+        return self
+
     def buttons(self, *buttons: InlineKeyboardButton) -> "InlineKeyboardFactory":
         """Adds buttons.
 

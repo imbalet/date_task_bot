@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from babel.dates import format_datetime, format_timedelta
 
-from date_task_bot.repositories.schemas import DueReminder
+from date_task_bot.repositories.schemas import DueReminder, PaginationResponse
 from date_task_bot.schemas import Reminder, Task
 
 
@@ -83,7 +83,6 @@ class TaskFormatter(BaseFormatterWithDate):
     def __init__(self, user_tz: str) -> None:
         super().__init__(user_tz)
         self.reminder_formatter = ReminderFormatter(user_tz=user_tz)
-        self.delta_formatter = TimeDeltaFormatter()
 
     def _format_reminders(self, reminders: list[Reminder]) -> str:
         return "\n".join([self.reminder_formatter.format(i) for i in reminders])
@@ -99,3 +98,30 @@ class TaskFormatter(BaseFormatterWithDate):
 <b>{self.date_formatter.format(model.due_date, DateFormat.SHORT)}</b>
 Напоминания:
 {formatted_reminders}"""
+
+
+class TaskShortFormatter(BaseFormatterWithDate):
+    @staticmethod
+    def _truncate_text(text: str, max_length: int) -> str:
+        return f"{text[:max_length]}{'...' if len(text) > max_length else ''}"
+
+    def format(self, model: Task, max_text_length: int = 30) -> str:
+        return f"""\
+<code>{self._truncate_text(model.text, max_text_length)}</code> \
+<b>{self.date_formatter.format(model.due_date, DateFormat.SHORT)}</b>"""
+
+
+class TaskListFormatter(BaseFormatterWithDate):
+    def __init__(self, user_tz: str) -> None:
+        super().__init__(user_tz)
+        self.task_formatter = TaskShortFormatter(user_tz=user_tz)
+
+    def format(self, model: PaginationResponse[Task]) -> str:
+        formatted_tasks = "\n".join(
+            [
+                f"{idx}. {self.task_formatter.format(el)}"
+                for idx, el in enumerate(model.items, start=model.offset + 1)
+            ]
+        )
+
+        return formatted_tasks
