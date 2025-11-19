@@ -4,12 +4,17 @@ from warnings import warn
 
 
 class MsgKey(str, Enum):
-    # control
+    # pagination
     CANCEL = "cancel"
     BACK = "back"
     CONFIRM = "confirm"
     NEXT = "next"
     PREV = "prev"
+
+    # task actions
+    DELETE = "delete"
+    EDIT = "edit"
+    MARK_AS_DONE = "mark_as_done"
 
     # texts
     DUE_DATE = "due_date"
@@ -41,12 +46,16 @@ class MsgKey(str, Enum):
 
 
 _TEXTS: dict[MsgKey, str] = {
-    # control
+    # pagination
     MsgKey.CANCEL: "Отмена",
     MsgKey.BACK: "Назад",
     MsgKey.CONFIRM: "Готово",
     MsgKey.NEXT: "Далее",
     MsgKey.PREV: "Назад",
+    # task actions
+    MsgKey.DELETE: "Удалить",
+    MsgKey.EDIT: "Изменить",
+    MsgKey.MARK_AS_DONE: "Сделано",
     # texts
     MsgKey.DUE_DATE: "Дата выполнения",
     MsgKey.REMINDERS: "Напоминания",

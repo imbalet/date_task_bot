@@ -1,3 +1,4 @@
+from enum import StrEnum
 from uuid import UUID
 
 from aiogram import Router
@@ -6,10 +7,12 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from date_task_bot.presentation.constants import TEXTS
-from date_task_bot.presentation.constants.text import MsgKey
+from date_task_bot.presentation.constants import TEXTS, MsgKey
 from date_task_bot.presentation.formatters.messages import AllTasksMessageFormatter
-from date_task_bot.presentation.formatters.models import TaskListFormatter
+from date_task_bot.presentation.formatters.models import (
+    TaskFormatter,
+    TaskListFormatter,
+)
 from date_task_bot.presentation.utils import (
     CallbackQueryWithMessage,
     KeyboardBuilder,
@@ -18,6 +21,7 @@ from date_task_bot.presentation.utils import (
 from date_task_bot.repositories.schemas import TaskPaginationRequest
 from date_task_bot.use_cases import (
     GetAllTasksUseCase,
+    GetTaskUseCase,
     GetTimezoneUseCase,
 )
 
@@ -26,18 +30,29 @@ router = Router(name=__name__)
 
 class TaskCallback(CallbackData, prefix="task"):
     task: UUID
-
-
-class TaskControlCallback(CallbackData, prefix="task_c"):
     page: int
 
 
-@router.callback_query(TaskControlCallback.filter())
+class TaskPaginationCallback(CallbackData, prefix="task_c"):
+    page: int
+
+
+class TaskAction(StrEnum):
+    DELETE = "delete"
+    EDIT = "edit"
+    MARK_AS_DONE = "mark_as_done"
+
+
+class TaskActionCallback(CallbackData, prefix="task_a"):
+    action: TaskAction
+
+
+@router.callback_query(TaskPaginationCallback.filter())
 @router.message(Command("tasks"))
 async def all_tasks(
     event: Message | CallbackQueryWithMessage,
     *,
-    callback_data: TaskControlCallback | None = None,
+    callback_data: TaskPaginationCallback | None = None,
     state: FSMContext,
     chat_id: str,
     get_all_tasks_uc: GetAllTasksUseCase,
@@ -49,11 +64,11 @@ async def all_tasks(
         current_page = callback_data.page
 
     user_tz_data = await get_tz_uc.execute(user_id=chat_id)
-    res = await get_all_tasks_uc.execute(
+    tasks_with_pagination = await get_all_tasks_uc.execute(
         TaskPaginationRequest(user_id=chat_id, page=current_page, page_size=6)
     )
     tasks_formatter = TaskListFormatter(user_tz=user_tz_data.current_timezone)
-    formatted_task_list = tasks_formatter.format(res)
+    formatted_task_list = tasks_formatter.format(tasks_with_pagination)
 
     if formatted_task_list:
         text = AllTasksMessageFormatter().format(
@@ -64,15 +79,21 @@ async def all_tasks(
 
     extra_buttons = []
     if current_page > 1:
-        extra_buttons.append((MsgKey.PREV, TaskControlCallback(page=current_page - 1)))
-    if current_page < res.total_pages:
-        extra_buttons.append((MsgKey.NEXT, TaskControlCallback(page=current_page + 1)))
+        extra_buttons.append(
+            (MsgKey.PREV, TaskPaginationCallback(page=current_page - 1))
+        )
+    if current_page < tasks_with_pagination.total_pages:
+        extra_buttons.append(
+            (MsgKey.NEXT, TaskPaginationCallback(page=current_page + 1))
+        )
 
     kbr_builder.conf(row_width=2, extra_buttons=extra_buttons)
     kbr_builder.buttons_text_tuple(
         *[
-            (str(idx), TaskCallback(task=el.id))
-            for idx, el in enumerate(res.items, start=res.offset + 1)
+            (str(idx), TaskCallback(task=el.id, page=current_page))
+            for idx, el in enumerate(
+                tasks_with_pagination.items, start=tasks_with_pagination.offset + 1
+            )
         ]
     )
 
@@ -82,4 +103,34 @@ async def all_tasks(
         text=text,
         reply_markup=kbr_builder.as_markup(),
         create_new=isinstance(event, Message),
+    )
+
+
+@router.callback_query(TaskCallback.filter())
+async def task_info(
+    callback: CallbackQueryWithMessage,
+    callback_data: TaskCallback,
+    state: FSMContext,
+    chat_id: str,
+    get_task_uc: GetTaskUseCase,
+    get_tz_uc: GetTimezoneUseCase,
+    kbr_builder: KeyboardBuilder,
+):
+    user_tz_data = await get_tz_uc.execute(user_id=chat_id)
+
+    task = await get_task_uc.execute(callback_data.task)
+    formatted_task = TaskFormatter(user_tz=user_tz_data.current_timezone).format(task)
+
+    kbr_builder.buttons_tuple(
+        (MsgKey.EDIT, TaskActionCallback(action=TaskAction.EDIT)),
+        (MsgKey.MARK_AS_DONE, TaskActionCallback(action=TaskAction.MARK_AS_DONE)),
+        (MsgKey.DELETE, TaskActionCallback(action=TaskAction.DELETE)),
+        (MsgKey.BACK, TaskPaginationCallback(page=callback_data.page)),
+    )
+
+    await update_main_message(
+        state=state,
+        event=callback,
+        text=formatted_task,
+        reply_markup=kbr_builder.as_markup(),
     )
