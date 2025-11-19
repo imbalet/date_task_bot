@@ -2,6 +2,8 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from date_task_bot.presentation.constants import TEXTS, MsgKey
+from date_task_bot.presentation.formatters.messages import CreatedTaskMessageFormatter
 from date_task_bot.presentation.formatters.models import TaskFormatter
 from date_task_bot.presentation.utils import update_main_message
 from date_task_bot.use_cases import (
@@ -31,7 +33,7 @@ async def start_adding_task(
     )
 
     if not parsed_date.date or not parsed_date.text:
-        text = "Не найдена дата или текст."
+        text = TEXTS[MsgKey.DATE_OR_TEXT_NOT_FOUND]
     else:
         created_task = await create_task_uc.execute(
             user_id=chat_id, text=parsed_date.text, due_date=parsed_date.date
@@ -39,6 +41,11 @@ async def start_adding_task(
         task_formatter = TaskFormatter(user_tz=user_tz_data.current_timezone)
         formatted_task = task_formatter.format(created_task.task)
 
-        text = f"Создана задача\n{formatted_task}"
+        text = CreatedTaskMessageFormatter().format(formatted_task=formatted_task)
 
-    await update_main_message(state=state, event=message, text=text, create_new=True)
+    await update_main_message(
+        state=state,
+        event=message,
+        text=text,
+        create_new=True,
+    )

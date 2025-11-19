@@ -6,6 +6,13 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
+from date_task_bot.presentation.constants import TEXTS, MsgKey
+from date_task_bot.presentation.constants.templates import TimezoneTemplate
+from date_task_bot.presentation.formatters.messages import (
+    StartCommandMessageFormatter,
+    TimezoneCommandMessageFormatter,
+    TimezoneSetMessageFormatter,
+)
 from date_task_bot.presentation.states import TimezoneSelectionState
 from date_task_bot.presentation.utils import (
     CallbackQueryWithMessage,
@@ -33,13 +40,16 @@ async def start(
     chat_id: str,
     register_user_uc: RegisterUserUseCase,
 ):
-    res = await register_user_uc.execute(data=UserCreate(id=chat_id))
-    text = "Привет, это бот для задач."
-    if res.user.settings:
-        text += (
-            f" Ваш текущий часовой пояс <code>{res.user.settings.timezone}</code>."
-            " Для смены используйте команду /timezone"
-        )
+    register_user_res = await register_user_uc.execute(data=UserCreate(id=chat_id))
+
+    timezone_text = ""
+    if register_user_res.user.settings:
+        timezone_text = TimezoneTemplate(
+            timezone=register_user_res.user.settings.timezone
+        ).render()
+
+    text = StartCommandMessageFormatter().format(formatted_timezone=timezone_text)
+
     await update_main_message(
         state=state,
         event=message,
@@ -56,20 +66,22 @@ async def set_timezone(
     kbr_builder: KeyboardBuilder,
     get_tz_uc: GetTimezoneUseCase,
 ):
-    user_tz = await get_tz_uc.execute(user_id=chat_id)
+    get_user_tz_res = await get_tz_uc.execute(user_id=chat_id)
 
     popular_zones = ["Europe/Moscow", "Europe/London", "Asia/Tokyo", "America/New_York"]
     for tz in popular_zones:
         kbr_builder.button_text(tz, callback_data=TimeZoneCallback(tz=tz))
-    kbr_builder.button_text("Другая", callback_data=TimeZoneCallback(tz="other"))
+    kbr_builder.button(MsgKey.OTHER_TZ, callback_data=TimeZoneCallback(tz="other"))
+
+    text = TimezoneCommandMessageFormatter().format(
+        timezone=get_user_tz_res.current_timezone,
+        time=get_user_tz_res.current_time.strftime("%H:%M"),
+    )
 
     await update_main_message(
         state=state,
         event=message,
-        text=(
-            f"Выберите свой часовой пояс. Текущий часовой пояс: {user_tz.current_timezone}, "
-            f"текущее время: {user_tz.current_time.strftime('%H:%M')}."
-        ),
+        text=text,
         reply_markup=kbr_builder.as_markup(),
         create_new=True,
     )
@@ -94,13 +106,19 @@ async def set_timezone_callback(
 
     if tz == "other":
         await state.set_state(TimezoneSelectionState.AWAIT_TZ_NAME)
-        text = "Напишите ваш часовой пояс по стандарту IANA."
+        text = TEXTS[MsgKey.SEND_YOUR_TIMEZONE]
     else:
-        res = await set_tz_uc.execute(user_id=chat_id, tz=tz)
+        set_tz_res = await set_tz_uc.execute(user_id=chat_id, tz=tz)
 
-        if res.success and res.current_time:
-            text = f"Часовой пояс установлен: {tz}\nТекущее время: {res.current_time.strftime('%H:%M')}"
+        if set_tz_res.success and set_tz_res.current_time:
+            text = TimezoneSetMessageFormatter().format(
+                timezone=tz, time=set_tz_res.current_time.strftime("%H:%M")
+            )
         else:
-            text = "Такого часового пояса нет. Попробуйте выбрать из списка популярных или напишите корректно."
+            text = TEXTS[MsgKey.NO_TIMEZONE]
 
-    await update_main_message(state=state, event=event, text=text)
+    await update_main_message(
+        state=state,
+        event=event,
+        text=text,
+    )

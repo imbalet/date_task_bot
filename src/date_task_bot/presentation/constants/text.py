@@ -19,6 +19,26 @@ class MsgKey(str, Enum):
     WITH_DUE_DATE = "with_due_date"
     REMAIN = "remain"
 
+    YOUR_TASKS = "your_tasks"
+    NO_TASKS = "no_tasks"
+
+    CREATED_TASK = "created_task"
+    DATE_OR_TEXT_NOT_FOUND = "date_or_text_not_found"
+
+    WELCOME_MESSAGE = "welcome_message"
+    YOUR_TIMEZONE = "your_timezone"
+    CHANGE_TIMEZONE = "change_timezone"
+
+    SELECT_TIMEZONE = "select_timezone"
+    CURRENT_TIMEZONE = "current_timezone"
+    CURRENT_TIME = "current_time"
+
+    SEND_YOUR_TIMEZONE = "send_your_timezone"
+    TIMEZONE_WAS_SET = "timezone_was_set"
+    NO_TIMEZONE = "no_timezone"
+
+    OTHER_TZ = "other_tz"
+
 
 _TEXTS: dict[MsgKey, str] = {
     # control
@@ -34,6 +54,20 @@ _TEXTS: dict[MsgKey, str] = {
     MsgKey.TASK_REMINDER: "Напоминание о задаче",
     MsgKey.WITH_DUE_DATE: "c датой выполнения",
     MsgKey.REMAIN: "Осталось",
+    MsgKey.YOUR_TASKS: "Ваши задачи",
+    MsgKey.NO_TASKS: "У вас нет задач",
+    MsgKey.CREATED_TASK: "Создана задача",
+    MsgKey.DATE_OR_TEXT_NOT_FOUND: "Не найдена дата или текст",
+    MsgKey.WELCOME_MESSAGE: "Привет, это бот для задач",
+    MsgKey.YOUR_TIMEZONE: "Ваш текущий часовой пояс",
+    MsgKey.CHANGE_TIMEZONE: "Для смены используйте команду /timezone",
+    MsgKey.SELECT_TIMEZONE: "Выберите свой часовой пояс",
+    MsgKey.CURRENT_TIMEZONE: "Текущий часовой пояс",
+    MsgKey.CURRENT_TIME: "Текущее время",
+    MsgKey.SEND_YOUR_TIMEZONE: "Напишите ваш часовой пояс по стандарту IANA",
+    MsgKey.TIMEZONE_WAS_SET: "Часовой пояс установлен",
+    MsgKey.NO_TIMEZONE: "Такого часового пояса нет. Попробуйте выбрать из списка популярных или напишите корректно.",
+    MsgKey.OTHER_TZ: "Другой",
 }
 
 

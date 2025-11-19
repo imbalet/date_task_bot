@@ -6,7 +6,9 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from date_task_bot.presentation.constants import TEXTS
 from date_task_bot.presentation.constants.text import MsgKey
+from date_task_bot.presentation.formatters.messages import AllTasksMessageFormatter
 from date_task_bot.presentation.formatters.models import TaskListFormatter
 from date_task_bot.presentation.utils import (
     CallbackQueryWithMessage,
@@ -54,9 +56,11 @@ async def all_tasks(
     formatted_task_list = tasks_formatter.format(res)
 
     if formatted_task_list:
-        text = "Ваши задачи:\n" + formatted_task_list
+        text = AllTasksMessageFormatter().format(
+            formatted_task_list=formatted_task_list
+        )
     else:
-        text = "У вас нет задач."
+        text = TEXTS[MsgKey.NO_TASKS]
 
     extra_buttons = []
     if current_page > 1:

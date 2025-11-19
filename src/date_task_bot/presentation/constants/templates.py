@@ -92,3 +92,14 @@ class DueReminderWithoutDeltaTemplate:
 <code>{self.text}</code>
 {TEXTS[MsgKey.WITH_DUE_DATE]}:
 <b>{self.due_date}</b>"""
+
+
+# Timezone
+
+
+@dataclass
+class TimezoneTemplate:
+    timezone: str
+
+    def render(self) -> str:
+        return f"<code>{self.timezone}</code>"
