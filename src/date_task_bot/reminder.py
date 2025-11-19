@@ -3,8 +3,8 @@ from logging import getLogger
 
 from aiogram import Bot
 
+from date_task_bot.presentation.formatters.models import DueReminderFormatter
 from date_task_bot.presentation.services import Sender
-from date_task_bot.presentation.utils import DueReminderFormatter
 from date_task_bot.repositories import ReminderRepository
 from date_task_bot.repositories.schemas import DueReminder
 from date_task_bot.schemas import ReminderStatus

@@ -2,10 +2,8 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from date_task_bot.presentation.utils import (
-    TaskFormatter,
-    update_main_message,
-)
+from date_task_bot.presentation.formatters.models import TaskFormatter
+from date_task_bot.presentation.utils import update_main_message
 from date_task_bot.use_cases import (
     CreateTaskUseCase,
     GetTimezoneUseCase,

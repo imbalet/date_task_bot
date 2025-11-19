@@ -12,7 +12,6 @@ from date_task_bot.presentation.utils import (
     KeyboardBuilder,
     update_main_message,
 )
-from date_task_bot.repositories import UserRepository
 from date_task_bot.repositories.schemas import UserCreate
 from date_task_bot.use_cases import (
     GetTimezoneUseCase,
@@ -30,7 +29,6 @@ class TimeZoneCallback(CallbackData, prefix="tz"):
 @router.message(Command("start"))
 async def start(
     message: Message,
-    user_repository: UserRepository,
     state: FSMContext,
     chat_id: str,
     register_user_uc: RegisterUserUseCase,

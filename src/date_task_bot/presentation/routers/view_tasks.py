@@ -7,10 +7,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from date_task_bot.presentation.constants.text import MsgKey
+from date_task_bot.presentation.formatters.models import TaskListFormatter
 from date_task_bot.presentation.utils import (
     CallbackQueryWithMessage,
     KeyboardBuilder,
-    TaskListFormatter,
     update_main_message,
 )
 from date_task_bot.repositories.schemas import TaskPaginationRequest

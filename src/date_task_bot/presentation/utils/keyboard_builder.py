@@ -9,6 +9,7 @@ from date_task_bot.presentation.callbacks import (
     CancelCallback,
     ConfirmCallback,
 )
+from date_task_bot.presentation.constants import TEXTS
 from date_task_bot.presentation.constants.text import MsgKey
 
 
@@ -76,7 +77,7 @@ class InlineKeyboardFactory:
             cbdata (CallbackData): callback of the button.
         """
         btn = InlineKeyboardButton(
-            text=text, callback_data=callback_data.pack(), **kwargs
+            text=TEXTS[text], callback_data=callback_data.pack(), **kwargs
         )
         self._current_row.append(btn)
         if len(self._current_row) >= self._row_width:
@@ -132,7 +133,9 @@ class InlineKeyboardFactory:
         if buttons:
             self._keyboard.append(
                 [
-                    InlineKeyboardButton(text=text, callback_data=callback.pack())
+                    InlineKeyboardButton(
+                        text=TEXTS[text], callback_data=callback.pack()
+                    )
                     for text, callback in buttons
                 ]
             )
