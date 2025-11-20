@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
@@ -87,3 +87,9 @@ class TaskRepository(BaseRepository):
                 total_items=total_items,
                 items=tasks,
             )
+
+    async def delete(self, id: UUID) -> None:
+        async with self.session_factory() as session:
+            stmt = delete(TaskOrm).where(TaskOrm.id == id)
+            await session.execute(stmt)
+            await session.commit()

@@ -126,3 +126,10 @@ async def test_get_by_user_id_empty(
 
     assert res.total_items == 0
     assert len(res.items) == 0
+
+
+async def test_delete(async_session_factory, task_repo: TaskRepository, task_in_db):
+    await task_repo.delete(task_in_db.id)
+
+    from_db = await get_from_db_by_pk(async_session_factory, TaskOrm, task_in_db.id)
+    assert from_db is None
