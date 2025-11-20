@@ -1,12 +1,14 @@
-from enum import StrEnum
-from uuid import UUID
-
 from aiogram import Router
 from aiogram.filters import Command
-from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from date_task_bot.presentation.callbacks import (
+    TaskAction,
+    TaskActionCallback,
+    TaskCallback,
+    TaskPaginationCallback,
+)
 from date_task_bot.presentation.constants import TEXTS, MsgKey
 from date_task_bot.presentation.formatters.messages import AllTasksMessageFormatter
 from date_task_bot.presentation.formatters.models import (
@@ -26,25 +28,6 @@ from date_task_bot.use_cases import (
 )
 
 router = Router(name=__name__)
-
-
-class TaskCallback(CallbackData, prefix="task"):
-    task: UUID
-    page: int
-
-
-class TaskPaginationCallback(CallbackData, prefix="task_c"):
-    page: int
-
-
-class TaskAction(StrEnum):
-    DELETE = "delete"
-    EDIT = "edit"
-    MARK_AS_DONE = "mark_as_done"
-
-
-class TaskActionCallback(CallbackData, prefix="task_a"):
-    action: TaskAction
 
 
 @router.callback_query(TaskPaginationCallback.filter())
@@ -122,9 +105,12 @@ async def task_info(
     formatted_task = TaskFormatter(user_tz=user_tz_data.current_timezone).format(task)
 
     kbr_builder.buttons_tuple(
-        (MsgKey.EDIT, TaskActionCallback(action=TaskAction.EDIT)),
-        (MsgKey.MARK_AS_DONE, TaskActionCallback(action=TaskAction.MARK_AS_DONE)),
-        (MsgKey.DELETE, TaskActionCallback(action=TaskAction.DELETE)),
+        (MsgKey.EDIT, TaskActionCallback(act=TaskAction.EDIT, id=task.id)),
+        (
+            MsgKey.MARK_AS_DONE,
+            TaskActionCallback(act=TaskAction.MARK_AS_DONE, id=task.id),
+        ),
+        (MsgKey.DELETE, TaskActionCallback(act=TaskAction.DELETE, id=task.id)),
         (MsgKey.BACK, TaskPaginationCallback(page=callback_data.page)),
     )
 

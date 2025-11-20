@@ -44,6 +44,8 @@ class MsgKey(str, Enum):
 
     OTHER_TZ = "other_tz"
 
+    TASK_DELETED = "task_deleted"
+
 
 _TEXTS: dict[MsgKey, str] = {
     # pagination
@@ -77,6 +79,7 @@ _TEXTS: dict[MsgKey, str] = {
     MsgKey.TIMEZONE_WAS_SET: "Часовой пояс установлен",
     MsgKey.NO_TIMEZONE: "Такого часового пояса нет. Попробуйте выбрать из списка популярных или напишите корректно.",
     MsgKey.OTHER_TZ: "Другой",
+    MsgKey.TASK_DELETED: "Задача была удалена",
 }
 
 
