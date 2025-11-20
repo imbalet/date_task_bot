@@ -1,6 +1,7 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
@@ -9,7 +10,13 @@ from date_task_bot.models import ReminderOrm, TaskOrm
 from date_task_bot.schemas import Task
 
 from .base_repository import BaseRepository
-from .schemas import PaginationResponse, TaskCreate, TaskPaginationRequest, TaskResponse
+from .schemas import (
+    PaginationResponse,
+    TaskCreate,
+    TaskPaginationRequest,
+    TaskResponse,
+    TaskUpdate,
+)
 
 
 class TaskRepository(BaseRepository):
@@ -87,6 +94,25 @@ class TaskRepository(BaseRepository):
                 total_items=total_items,
                 items=tasks,
             )
+
+    async def update(self, data: TaskUpdate) -> Task | None:
+        async with self.session_factory() as session:
+            stmt = (
+                update(TaskOrm)
+                .values(
+                    **data.model_dump(include={"text", "due_date"}, exclude_unset=True),
+                    edited_at=datetime.now(UTC),
+                )
+                .where(TaskOrm.id == data.id)
+                .returning(TaskOrm)
+            )
+            res = await session.execute(stmt)
+            await session.commit()
+            result = res.scalar_one_or_none()
+            if not result:
+                return None
+
+            return TaskResponse.model_validate(result)
 
     async def delete(self, id: UUID) -> None:
         async with self.session_factory() as session:

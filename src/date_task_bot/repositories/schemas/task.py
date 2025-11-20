@@ -1,6 +1,7 @@
 from datetime import datetime
+from uuid import UUID
 
-from pydantic import Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from date_task_bot.schemas import Reminder, Task
 
@@ -31,3 +32,10 @@ class TaskResponse(Task, RepositoryDTO):
 
 class TaskPaginationRequest(PaginationRequest):
     user_id: str
+
+
+class TaskUpdate(BaseModel):
+    id: UUID
+    user_id: str
+    text: str | None = None
+    due_date: datetime | None = None

@@ -7,6 +7,7 @@ from date_task_bot.repositories.schemas import (
     TaskCreate,
     TaskPaginationRequest,
     TaskResponse,
+    TaskUpdate,
     UserResponse,
 )
 from tests.factories import make_task, make_task_orm
@@ -128,8 +129,27 @@ async def test_get_by_user_id_empty(
     assert len(res.items) == 0
 
 
-async def test_delete(async_session_factory, task_repo: TaskRepository, task_in_db):
+async def test_delete(
+    async_session_factory, task_repo: TaskRepository, task_in_db: TaskResponse
+):
     await task_repo.delete(task_in_db.id)
 
     from_db = await get_from_db_by_pk(async_session_factory, TaskOrm, task_in_db.id)
     assert from_db is None
+
+
+async def test_update(
+    async_session_factory, task_repo: TaskRepository, task_in_db: TaskResponse
+):
+    data = TaskUpdate(id=task_in_db.id, user_id=task_in_db.user_id, text="new text")
+
+    res = await task_repo.update(data=data)
+
+    from_db = TaskResponse.model_validate(
+        await get_from_db_by_pk(async_session_factory, TaskOrm, task_in_db.id)
+    )
+
+    assert res == from_db
+    assert from_db.text == data.text
+    assert from_db.due_date == task_in_db.due_date
+    assert from_db.edited_at

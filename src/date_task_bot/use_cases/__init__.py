@@ -1,5 +1,6 @@
 from .create_task import CreateTaskUseCase
 from .delete_task import DeleteTaskUseCase
+from .edit_task import EditTaskUseCase
 from .get_all_tasks import GetAllTasksUseCase
 from .get_task import GetTaskUseCase
 from .parse_datetime import ParseDateTimeUseCase
@@ -15,4 +16,5 @@ __all__ = [
     "GetAllTasksUseCase",
     "GetTaskUseCase",
     "DeleteTaskUseCase",
+    "EditTaskUseCase",
 ]

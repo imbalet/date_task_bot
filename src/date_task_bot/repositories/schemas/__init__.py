@@ -5,7 +5,7 @@ from .reminder import (
     ReminderCreate,
     ReminderResponse,
 )
-from .task import TaskCreate, TaskPaginationRequest, TaskResponse
+from .task import TaskCreate, TaskPaginationRequest, TaskResponse, TaskUpdate
 from .user import UserCreate, UserResponse
 from .user_settings import UserSettingsResponse, UserSettingsUpdate
 
@@ -23,4 +23,5 @@ __all__ = [
     "PaginationRequest",
     "PaginationResponse",
     "TaskPaginationRequest",
+    "TaskUpdate",
 ]
