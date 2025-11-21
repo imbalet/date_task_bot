@@ -1,10 +1,7 @@
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload
 
-from date_task_bot.exceptions import (
-    NOT_FOUND_MESSAGE,
-    NotFoundException,
-)
+from date_task_bot.exceptions import EntityEnum, NotFoundException
 from date_task_bot.models import UserSettingsOrm
 from date_task_bot.schemas import UserSettings
 
@@ -30,9 +27,7 @@ class UserSettingsRepository(BaseRepository):
             result = res.scalar_one_or_none()
             if result is None:
                 raise NotFoundException(
-                    NOT_FOUND_MESSAGE.format(
-                        entity=f"Settings for user with chat_id={user_id}"
-                    )
+                    entity=EntityEnum.SETTINGS, data={"user_id": user_id}
                 )
             return UserSettingsResponse.model_validate(result)
 
@@ -49,6 +44,6 @@ class UserSettingsRepository(BaseRepository):
             result = res.scalars().one_or_none()
             if not result:
                 raise NotFoundException(
-                    NOT_FOUND_MESSAGE.format(entity=f"User with chat_id={user_id}")
+                    entity=EntityEnum.SETTINGS, data={"user_id": user_id}
                 )
             return UserSettingsResponse.model_validate(result)

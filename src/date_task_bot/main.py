@@ -12,7 +12,7 @@ from aiogram.types import BotCommand
 from date_task_bot.config import get_config
 from date_task_bot.database import create_tables, get_sessionmaker
 from date_task_bot.exceptions import AppException
-from date_task_bot.exceptions_handler import repository_or_uc_exceptions_handler
+from date_task_bot.exceptions_handler import app_exceptions_handler
 from date_task_bot.logger import setup_logger
 from date_task_bot.presentation.middleware import (
     CallbackMessageMiddleware,
@@ -35,9 +35,7 @@ async def main() -> None:
 
     dp = Dispatcher()
 
-    dp.errors.register(
-        repository_or_uc_exceptions_handler, ExceptionTypeFilter(AppException)
-    )
+    dp.errors.register(app_exceptions_handler, ExceptionTypeFilter(AppException))
 
     dp.callback_query.middleware(CallbackMessageMiddleware())
 

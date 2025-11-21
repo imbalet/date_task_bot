@@ -5,7 +5,7 @@ from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
-from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
+from date_task_bot.exceptions import AppException, EntityEnum
 from date_task_bot.models import ReminderOrm, TaskOrm
 from date_task_bot.schemas import Task
 
@@ -41,7 +41,8 @@ class TaskRepository(BaseRepository):
                 return TaskResponse.model_validate(new)
             except IntegrityError:
                 await session.rollback()
-                raise AppException(UNEXPECTED_ERROR)
+                # logging
+                raise AppException(entity=EntityEnum.TASK)
 
     async def get(self, id: UUID, load_reminders: bool = False) -> Task | None:
         async with self.session_factory() as session:

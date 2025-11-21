@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy import insert, select, text, update
 from sqlalchemy.exc import IntegrityError
 
-from date_task_bot.exceptions import UNEXPECTED_ERROR, AppException
+from date_task_bot.exceptions import AppException, EntityEnum
 from date_task_bot.models import ReminderOrm, TaskOrm, UserSettingsOrm
 from date_task_bot.schemas import Reminder, ReminderStatus
 
@@ -28,7 +28,7 @@ class ReminderRepository(BaseRepository):
                 return ReminderResponse.model_validate(new)
             except IntegrityError:
                 await session.rollback()
-                raise AppException(UNEXPECTED_ERROR)
+                raise AppException(entity=EntityEnum.REMINDER)
 
     async def bulk_create(self, reminders: list[ReminderCreate]) -> list[Reminder]:
         async with self.session_factory() as session:
@@ -110,4 +110,4 @@ class ReminderRepository(BaseRepository):
 
             except IntegrityError:
                 await session.rollback()
-                raise AppException(UNEXPECTED_ERROR)
+                raise AppException(entity=EntityEnum.REMINDER)

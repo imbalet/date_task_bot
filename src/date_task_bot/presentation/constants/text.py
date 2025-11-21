@@ -46,6 +46,19 @@ class MsgKey(str, Enum):
 
     TASK_DELETED = "task_deleted"
 
+    # exceptions
+    UNEXPECTED_ERROR = "unexpected_error"
+    NOT_FOUND_ERROR = "not_found_error"
+    ALREADY_EXISTS_ERROR = "already_exists"
+    VALIDATION_ERROR = "validation_error"
+
+    # entities
+    TASK = "task"
+    USER = "user"
+    USER_SETTINGS = "user_settings"
+    REMINDER = "reminder"
+    OTHER_ENTITY = "other_entity"
+
 
 _TEXTS: dict[MsgKey, str] = {
     # pagination
@@ -80,6 +93,15 @@ _TEXTS: dict[MsgKey, str] = {
     MsgKey.NO_TIMEZONE: "Такого часового пояса нет. Попробуйте выбрать из списка популярных или напишите корректно.",
     MsgKey.OTHER_TZ: "Другой",
     MsgKey.TASK_DELETED: "Задача была удалена",
+    MsgKey.UNEXPECTED_ERROR: "Произошла непредвиденная ошибка ошибка.",
+    MsgKey.NOT_FOUND_ERROR: "{entity} with {data} not found.",
+    MsgKey.ALREADY_EXISTS_ERROR: "{entity} with {data} already exists.",
+    MsgKey.VALIDATION_ERROR: "Validation error for {entity}: {data}.",
+    MsgKey.TASK: "Задача",
+    MsgKey.USER: "Пользователь",
+    MsgKey.USER_SETTINGS: "Настройки пользователя",
+    MsgKey.REMINDER: "Напоминание",
+    MsgKey.OTHER_ENTITY: "Неизвестная сущность",
 }
 
 

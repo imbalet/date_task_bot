@@ -1,10 +1,7 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
-from date_task_bot.exceptions import (
-    ALREADY_EXISTS_MESSAGE,
-    AlreadyExistsException,
-)
+from date_task_bot.exceptions import AlreadyExistsException, EntityEnum
 from date_task_bot.models import TaskOrm, UserOrm, UserSettingsOrm
 from date_task_bot.schemas import User
 
@@ -25,7 +22,7 @@ class UserRepository(BaseRepository):
             except IntegrityError:
                 await session.rollback()
                 raise AlreadyExistsException(
-                    ALREADY_EXISTS_MESSAGE.format(entity=f"User with chat_id={user.id}")
+                    entity=EntityEnum.USER, data={"id": user.id}
                 )
 
     async def get(

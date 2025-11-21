@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo, available_timezones
 
-from date_task_bot.exceptions import NOT_FOUND_MESSAGE, NotFoundException
+from date_task_bot.exceptions import EntityEnum, NotFoundException
 from date_task_bot.repositories import UserSettingsRepository
 from date_task_bot.repositories.schemas import UserSettingsUpdate
 
@@ -45,9 +45,7 @@ class GetTimezoneUseCase:
     async def execute(self, user_id: str) -> GetTimezoneUseCaseResult:
         user = await self.user_settings_repo.get_by_user_id(user_id=user_id)
         if not user:
-            raise NotFoundException(
-                NOT_FOUND_MESSAGE.format(entity=f"User with id={user_id}")
-            )
+            raise NotFoundException(entity=EntityEnum.USER, data={"id": user_id})
         now = datetime.now(ZoneInfo(user.timezone))
         return GetTimezoneUseCaseResult(
             current_time=now, current_timezone=user.timezone
