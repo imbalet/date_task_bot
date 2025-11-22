@@ -167,3 +167,69 @@ async def test_reserve_multiply_with_other_statuses(
     res = await reminder_repo.reserve_due_reminders()
 
     assert len(res) == 1
+
+
+async def test_delete(
+    async_session_factory,
+    reminder_repo: ReminderRepository,
+    reminder_in_db: ReminderResponse,
+):
+    await reminder_repo.delete(reminder_in_db.id)
+
+    from_db = await get_from_db_by_pk(
+        async_session_factory, ReminderOrm, reminder_in_db.id
+    )
+
+    assert from_db is None
+
+
+async def test_delete_by_task_id(
+    async_session_factory,
+    reminder_repo: ReminderRepository,
+    reminder_in_db: ReminderResponse,
+):
+    await reminder_repo.delete_by_task_id(reminder_in_db.task_id)
+
+    from_db = await get_from_db_by_pk(
+        async_session_factory, ReminderOrm, reminder_in_db.id
+    )
+
+    assert from_db is None
+
+
+async def test_update_all(
+    async_session_factory,
+    reminder_repo: ReminderRepository,
+    task_without_reminders_in_db: TaskResponse,
+):
+
+    reminders_to_update = [
+        make_reminder(
+            task_id=task_without_reminders_in_db.id, offset_seconds=timedelta(hours=-i)
+        )
+        for i in range(2)
+    ]
+    no_update_reminder = make_reminder(
+        task_id=task_without_reminders_in_db.id, offset_seconds=timedelta(hours=1)
+    )
+
+    saved_reminders = []
+    for reminder in [no_update_reminder, *reminders_to_update]:
+        orm_reminder = make_reminder_orm(reminder)
+        saved = await create_entity(async_session_factory, orm_reminder)
+        saved_reminders.append(ReminderResponse.model_validate(saved))
+
+    updated_reminders = []
+    for reminder in saved_reminders[1:]:
+        reminder.offset_seconds += timedelta(seconds=100)
+        updated_reminders.append(reminder)
+
+    await reminder_repo.update_all(reminders=updated_reminders)
+
+    from_db = await reminder_repo.get_by_task_id(task_without_reminders_in_db.id)
+
+    for reminder in from_db:
+        if reminder.id == saved_reminders[0].id:
+            assert reminder == saved_reminders[0]
+        else:
+            assert reminder in updated_reminders

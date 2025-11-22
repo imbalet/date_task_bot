@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import insert, select, text, update
+from sqlalchemy import delete, insert, select, text, update
 from sqlalchemy.exc import IntegrityError
 
 from date_task_bot.exceptions import AppException, EntityEnum
@@ -37,6 +37,7 @@ class ReminderRepository(BaseRepository):
                 [r.model_dump() for r in reminders],
             )
             result = res.scalars().all()
+            await session.commit()
             return [ReminderResponse.model_validate(i) for i in result]
 
     async def get(self, id: UUID) -> Reminder | None:
@@ -46,7 +47,7 @@ class ReminderRepository(BaseRepository):
                 return None
             return ReminderResponse.model_validate(res)
 
-    async def get_by_task_id(self, task_id: str) -> list[Reminder]:
+    async def get_by_task_id(self, task_id: UUID) -> list[Reminder]:
         async with self.session_factory() as session:
             stmt = (
                 select(ReminderOrm)
@@ -111,3 +112,23 @@ class ReminderRepository(BaseRepository):
             except IntegrityError:
                 await session.rollback()
                 raise AppException(entity=EntityEnum.REMINDER)
+
+    async def delete(self, id: UUID) -> None:
+        async with self.session_factory() as session:
+            stmt = delete(ReminderOrm).where(ReminderOrm.id == id)
+            await session.execute(stmt)
+            await session.commit()
+
+    async def delete_by_task_id(self, task_id: UUID) -> None:
+        async with self.session_factory() as session:
+            stmt = delete(ReminderOrm).where(ReminderOrm.task_id == task_id)
+            await session.execute(stmt)
+            await session.commit()
+
+    async def update_all(self, reminders: list[Reminder]) -> None:
+        async with self.session_factory() as session:
+            await session.execute(
+                update(ReminderOrm),
+                [r.model_dump() for r in reminders],
+            )
+            await session.commit()
