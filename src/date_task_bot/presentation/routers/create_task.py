@@ -39,7 +39,7 @@ async def start_adding_task(
             user_id=chat_id, text=parsed_date.text, due_date=parsed_date.date
         )
         task_formatter = TaskFormatter(user_tz=user_tz_data.current_timezone)
-        formatted_task = task_formatter.format(created_task.task)
+        formatted_task = task_formatter.format(created_task)
 
         text = CreatedTaskMessageFormatter().format(formatted_task=formatted_task)
 

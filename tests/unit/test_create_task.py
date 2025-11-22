@@ -34,7 +34,7 @@ async def test_creating_task(
 
     used_reminders = task_repo_mock.create.call_args[0][0].reminders
 
-    assert res.task == task_response_schema
+    assert res == task_response_schema
 
     assert all(
         used.offset_seconds == actual.offset_seconds
@@ -76,7 +76,7 @@ async def test_creating_task_reminders_in_the_past(
 
     used_reminders = task_repo_mock.create.call_args[0][0].reminders
 
-    assert res.task
+    assert res
 
     assert all(
         used.offset_seconds == actual.offset_seconds

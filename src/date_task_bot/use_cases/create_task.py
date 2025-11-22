@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from date_task_bot.repositories import (
@@ -7,11 +6,6 @@ from date_task_bot.repositories import (
 )
 from date_task_bot.repositories.schemas import ReminderCreate, TaskCreate
 from date_task_bot.schemas import DefaultRemindTiming, Task
-
-
-@dataclass
-class CreateTaskUseCaseResult:
-    task: Task
 
 
 class CreateTaskUseCase:
@@ -39,18 +33,16 @@ class CreateTaskUseCase:
             )
         return reminders
 
-    async def execute(
-        self, user_id: str, text: str, due_date: datetime
-    ) -> CreateTaskUseCaseResult:
+    async def execute(self, user_id: str, text: str, due_date: datetime) -> Task:
         """Creates task with related timings and reminders.
 
         Args:
-            user_id (str): _description_
-            text (str): _description_
-            due_date (datetime): _description_
+            user_id (str): User ID.
+            text (str): Task description.
+            due_date (datetime): Task due date.
 
         Returns:
-            CreateTaskUseCaseResult: _description_
+            Task: Created task.
         """
         due_date_utc = due_date.astimezone(UTC)
         user_settings = await self.user_settings_repo.get_by_user_id(
@@ -67,4 +59,4 @@ class CreateTaskUseCase:
                 reminders=reminders,
             )
         )
-        return CreateTaskUseCaseResult(task=task)
+        return task
