@@ -34,3 +34,14 @@ class TaskAction(StrEnum):
 class TaskActionCallback(CallbackData, prefix="task_a"):
     act: TaskAction
     id: UUID
+
+
+class TaskUpdateFields(StrEnum):
+    TEXT = "text"
+    DUE_DATE = "d_date"
+
+
+class TaskUpdateCallback(CallbackData, prefix="task_u"):
+    id: UUID
+    # field
+    f: TaskUpdateFields

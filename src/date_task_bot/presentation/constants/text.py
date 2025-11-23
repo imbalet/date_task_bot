@@ -44,7 +44,9 @@ class MsgKey(str, Enum):
 
     OTHER_TZ = "other_tz"
 
+    # for tasks actions, results, etc
     TASK_DELETED = "task_deleted"
+    CHOOSE_FIELD_TO_UPDATE = "choose_field"
 
     # exceptions
     UNEXPECTED_ERROR = "unexpected_error"
@@ -58,6 +60,16 @@ class MsgKey(str, Enum):
     USER_SETTINGS = "user_settings"
     REMINDER = "reminder"
     OTHER_ENTITY = "other_entity"
+
+    # editing task, fields
+    DUE_DATE_FIELD = "due_date_field"
+    TEXT_FIELD = "text_field"
+
+    SELECT_NEW_DUE_DATE = "select_new_due_date"
+    SELECT_NEW_TEXT = "select_new_text"
+    TEXT_NOT_FOUND = "text_not_found"
+
+    UPDATED_TASK = "updated_task"
 
 
 _TEXTS: dict[MsgKey, str] = {
@@ -93,7 +105,8 @@ _TEXTS: dict[MsgKey, str] = {
     MsgKey.NO_TIMEZONE: "Такого часового пояса нет. Попробуйте выбрать из списка популярных или напишите корректно.",
     MsgKey.OTHER_TZ: "Другой",
     MsgKey.TASK_DELETED: "Задача была удалена",
-    MsgKey.UNEXPECTED_ERROR: "Произошла непредвиденная ошибка ошибка.",
+    MsgKey.CHOOSE_FIELD_TO_UPDATE: "Выберете поле для изменения",
+    MsgKey.UNEXPECTED_ERROR: "Произошла непредвиденная ошибка.",
     MsgKey.NOT_FOUND_ERROR: "{entity} with {data} not found.",
     MsgKey.ALREADY_EXISTS_ERROR: "{entity} with {data} already exists.",
     MsgKey.VALIDATION_ERROR: "Validation error for {entity}: {data}.",
@@ -102,6 +115,12 @@ _TEXTS: dict[MsgKey, str] = {
     MsgKey.USER_SETTINGS: "Настройки пользователя",
     MsgKey.REMINDER: "Напоминание",
     MsgKey.OTHER_ENTITY: "Неизвестная сущность",
+    MsgKey.SELECT_NEW_DUE_DATE: "Введите новую дату и время в формате дд.мм.гг чч:мм. Например, 14.05.25 16:51",
+    MsgKey.SELECT_NEW_TEXT: "Введите новый текст задачи.",
+    MsgKey.TEXT_NOT_FOUND: "Текст не найден",
+    MsgKey.UPDATED_TASK: "Задача была обновлена",
+    MsgKey.DUE_DATE_FIELD: "Дата выполнения",
+    MsgKey.TEXT_FIELD: "Текст",
 }
 
 

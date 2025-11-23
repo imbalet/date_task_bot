@@ -18,7 +18,7 @@ class EditTaskUseCase:
     def update_reminders(
         reminders: list[Reminder], new_due_date: datetime
     ) -> list[Reminder]:
-        reminders = []
+        updated_reminders = []
         now = datetime.now(UTC)
 
         for reminder in reminders:
@@ -26,8 +26,10 @@ class EditTaskUseCase:
             remind_at = new_due_date + offset
             if remind_at <= now:
                 continue
-            reminders.append(reminder.model_copy(update={"remind_at": remind_at}))
-        return reminders
+            updated_reminders.append(
+                reminder.model_copy(update={"remind_at": remind_at})
+            )
+        return updated_reminders
 
     async def execute(self, data: TaskUpdate) -> Task:
         now = datetime.now(UTC)
@@ -48,13 +50,16 @@ class EditTaskUseCase:
             raise NotFoundException(entity=EntityEnum.TASK, data={"id": data.id})
 
         updated_task = await self.task_repo.update(data=data)
+        if not updated_task:
+            raise NotFoundException(entity=EntityEnum.TASK, data={"id": data.id})
 
         if due_date_changed and data.due_date is not None:
             updated_reminders = self.update_reminders(
                 reminders=task.reminders, new_due_date=data.due_date
             )
             await self.reminder_repo.update_all(updated_reminders)
-        if not updated_task:
-            raise NotFoundException(entity=EntityEnum.TASK, data={"id": data.id})
+            updated_task = updated_task.model_copy(
+                update={"reminders": updated_reminders}
+            )
 
         return updated_task

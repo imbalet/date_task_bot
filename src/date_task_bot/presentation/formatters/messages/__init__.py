@@ -1,6 +1,6 @@
 from .all_tasks import AllTasksMessageFormatter
-from .create_task import CreatedTaskMessageFormatter
 from .start import StartCommandMessageFormatter
+from .task import CreatedTaskMessageFormatter, UpdatedTaskMessageFormatter
 from .timezone import TimezoneCommandMessageFormatter, TimezoneSetMessageFormatter
 
 __all__ = [
@@ -9,4 +9,5 @@ __all__ = [
     "StartCommandMessageFormatter",
     "TimezoneCommandMessageFormatter",
     "TimezoneSetMessageFormatter",
+    "UpdatedTaskMessageFormatter",
 ]
