@@ -69,6 +69,8 @@ class ReminderRepository(BaseRepository):
             res = await session.execute(stmt)
             await session.commit()
             result = res.scalar()
+            if not result:
+                return None
             return ReminderResponse.model_validate(result)
 
     async def reserve_due_reminders(self, limit: int = 300) -> list[DueReminder]:
