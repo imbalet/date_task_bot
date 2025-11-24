@@ -84,7 +84,7 @@ def user_settings_repo(async_session_factory) -> UserSettingsRepository:
 
 @pytest.fixture
 def user_orm(user_id: str) -> UserOrm:
-    user = make_user(id=user_id)
+    user = make_user(id=user_id, use_default_settings=True)
     return make_user_orm(user)
 
 

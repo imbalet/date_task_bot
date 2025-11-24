@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from date_task_bot.models import TaskOrm
 from date_task_bot.repositories import TaskRepository
@@ -67,6 +67,8 @@ async def test_get_by_user_id(
 ):
     now = datetime.now(UTC)
     task = make_task(user_id=user_in_db.id)
+
+    # for correct sorting
     created1: TaskOrm = await create_entity(
         async_session_factory, make_task_orm(task, created_at=now)
     )
@@ -85,7 +87,7 @@ async def test_get_by_user_id(
     assert res.items[1].id == created1.id
 
 
-async def test_get_by_user_id_pagination(
+async def test_get_by_user_id_with_pagination(
     task_repo: TaskRepository,
     user_in_db: UserResponse,
     async_session_factory,
@@ -129,17 +131,10 @@ async def test_get_by_user_id_empty(
     assert len(res.items) == 0
 
 
-async def test_delete(
-    async_session_factory, task_repo: TaskRepository, task_in_db: TaskResponse
-):
-    await task_repo.delete(task_in_db.id)
-
-    from_db = await get_from_db_by_pk(async_session_factory, TaskOrm, task_in_db.id)
-    assert from_db is None
-
-
 async def test_update(
-    async_session_factory, task_repo: TaskRepository, task_in_db: TaskResponse
+    async_session_factory,
+    task_repo: TaskRepository,
+    task_in_db: TaskResponse,
 ):
     data = TaskUpdate(id=task_in_db.id, user_id=task_in_db.user_id, text="new text")
 
@@ -153,3 +148,28 @@ async def test_update(
     assert from_db.text == data.text
     assert from_db.due_date == task_in_db.due_date
     assert from_db.edited_at
+
+
+async def test_update_empty_with_user(
+    async_session_factory,
+    task_repo: TaskRepository,
+    user_in_db: UserResponse,
+):
+    task_id = uuid4()
+    data = TaskUpdate(id=task_id, user_id=user_in_db.id, text="new text")
+
+    res = await task_repo.update(data=data)
+
+    from_db = await get_from_db_by_pk(async_session_factory, TaskOrm, task_id)
+
+    assert res is None
+    assert from_db is None
+
+
+async def test_delete(
+    async_session_factory, task_repo: TaskRepository, task_in_db: TaskResponse
+):
+    await task_repo.delete(task_in_db.id)
+
+    from_db = await get_from_db_by_pk(async_session_factory, TaskOrm, task_in_db.id)
+    assert from_db is None

@@ -57,6 +57,18 @@ async def test_get(
     assert res.settings is None
 
 
+async def test_get_load_settings(
+    user_repo: UserRepository,
+    user_in_db: UserResponse,
+):
+    res = await user_repo.get(user_in_db.id, load_settings=True)
+
+    assert res
+    assert res.id == user_in_db.id
+
+    assert res.settings is not None
+
+
 async def test_get_load_tasks(
     user_repo: UserRepository,
     user_in_db: UserResponse,
@@ -68,6 +80,7 @@ async def test_get_load_tasks(
     assert res.id == user_in_db.id
 
     assert len(res.tasks) == 1
+    assert res.tasks[0] == task_in_db
     assert res.settings is None
     assert len(res.tasks[0].reminders) == 0
 
@@ -82,8 +95,6 @@ async def test_get_load_tasks_reminders(
     assert res
     assert res.id == user_in_db.id
 
-    assert len(res.tasks) == 1
-    assert res.settings is None
     assert len(res.tasks[0].reminders) > 0
 
 

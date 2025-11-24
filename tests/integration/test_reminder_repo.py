@@ -1,5 +1,7 @@
 from datetime import UTC, datetime, timedelta
-from uuid import UUID
+from uuid import UUID, uuid4
+
+import pytest
 
 from date_task_bot.models import ReminderOrm
 from date_task_bot.repositories import ReminderRepository
@@ -52,6 +54,47 @@ async def test_get_not_exists(reminder_repo: ReminderRepository, fixed_uuid: UUI
     res = await reminder_repo.get(fixed_uuid)
 
     assert res is None
+
+
+async def test_get_by_task_id(
+    reminder_repo: ReminderRepository,
+    reminder_in_db: ReminderResponse,
+):
+    res = await reminder_repo.get_by_task_id(reminder_in_db.task_id)
+
+    assert len(res) == 1
+    assert res[0].id == reminder_in_db.id
+
+
+@pytest.mark.parametrize("status", [status for status in ReminderStatus])
+async def test_set_status(
+    async_session_factory,
+    status: ReminderStatus,
+    reminder_repo: ReminderRepository,
+    reminder_in_db: ReminderResponse,
+):
+    res = await reminder_repo.set_status(id=reminder_in_db.id, status=status)
+    from_db = await get_from_db_by_pk(
+        async_session_factory, ReminderOrm, reminder_in_db.id
+    )
+
+    assert res
+    assert res.status == status
+    assert from_db.status == status
+
+
+async def test_set_status_empty(
+    async_session_factory,
+    reminder_repo: ReminderRepository,
+):
+    reminder_id = uuid4()
+    status = ReminderStatus.FAILED
+
+    res = await reminder_repo.set_status(id=reminder_id, status=status)
+    from_db = await get_from_db_by_pk(async_session_factory, ReminderOrm, reminder_id)
+
+    assert res is None
+    assert from_db is None
 
 
 async def test_reserve(
