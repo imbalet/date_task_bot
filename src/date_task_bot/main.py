@@ -46,6 +46,8 @@ async def main() -> None:
 
     commands = [
         BotCommand(command="/start", description="Запустить бота"),
+        BotCommand(command="/timezone", description="Смена часового пояса"),
+        BotCommand(command="/tasks", description="Список задач"),
     ]  # TODO: move it
     await bot.set_my_commands(commands)
 
