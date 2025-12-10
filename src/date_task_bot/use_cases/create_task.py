@@ -17,7 +17,9 @@ class CreateTaskUseCase:
         self.user_settings_repo = user_settings_repo
 
     @staticmethod
-    def create_reminders(due_date: datetime, timings: list[DefaultRemindTiming]):
+    def create_reminders(
+        due_date: datetime, timings: list[DefaultRemindTiming]
+    ) -> list[ReminderCreate]:
         reminders = []
         now = datetime.now(UTC)
 
