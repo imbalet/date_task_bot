@@ -32,7 +32,7 @@ class ParseDateTimeUseCase:
         user_tz = ZoneInfo(user_tz_str)
         settings = {
             "PREFER_DATES_FROM": "future",
-            "RELATIVE_BASE": datetime.now(user_tz),
+            "RELATIVE_BASE": datetime.now(user_tz).replace(tzinfo=None),
             "DEFAULT_LANGUAGES": ["ru"],
             "TIMEZONE": user_tz_str,
             "RETURN_AS_TIMEZONE_AWARE": True,
