@@ -2,10 +2,11 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from date_task_bot.presentation.callbacks import TaskAction, TaskActionCallback
 from date_task_bot.presentation.constants import TEXTS, MsgKey
 from date_task_bot.presentation.formatters.messages import CreatedTaskMessageFormatter
 from date_task_bot.presentation.formatters.models import TaskFormatter
-from date_task_bot.presentation.utils import update_main_message
+from date_task_bot.presentation.utils import KeyboardBuilder, update_main_message
 from date_task_bot.use_cases import (
     CreateTaskUseCase,
     GetTimezoneUseCase,
@@ -23,6 +24,7 @@ async def start_adding_task(
     get_tz_uc: GetTimezoneUseCase,
     parse_datetime_uc: ParseDateTimeUseCase,
     create_task_uc: CreateTaskUseCase,
+    kbr_builder: KeyboardBuilder,
 ) -> None:
     text = str(message.text).strip()
 
@@ -42,10 +44,18 @@ async def start_adding_task(
         formatted_task = task_formatter.format(created_task)
 
         text = CreatedTaskMessageFormatter().format(formatted_task=formatted_task)
+        kbr_builder.buttons_tuple(
+            (MsgKey.EDIT, TaskActionCallback(act=TaskAction.EDIT, id=created_task.id)),
+            (
+                MsgKey.DELETE,
+                TaskActionCallback(act=TaskAction.DELETE, id=created_task.id),
+            ),
+        )
 
     await update_main_message(
         state=state,
         event=message,
         text=text,
         create_new=True,
+        reply_markup=kbr_builder.as_markup(),
     )
