@@ -68,6 +68,7 @@ class MsgKey(str, Enum):
     SELECT_NEW_DUE_DATE = "select_new_due_date"
     SELECT_NEW_TEXT = "select_new_text"
     TEXT_NOT_FOUND = "text_not_found"
+    DATE_PARSING_ERROR = "date_parsing_error"
 
     UPDATED_TASK = "updated_task"
 
@@ -118,6 +119,7 @@ _TEXTS: dict[MsgKey, str] = {
     MsgKey.SELECT_NEW_DUE_DATE: "Введите новую дату и время в формате дд.мм.гг чч:мм. Например, 14.05.25 16:51",
     MsgKey.SELECT_NEW_TEXT: "Введите новый текст задачи.",
     MsgKey.TEXT_NOT_FOUND: "Текст не найден",
+    MsgKey.DATE_PARSING_ERROR: "Ошибка парсинга даты",
     MsgKey.UPDATED_TASK: "Задача была обновлена",
     MsgKey.DUE_DATE_FIELD: "Дата выполнения",
     MsgKey.TEXT_FIELD: "Текст",

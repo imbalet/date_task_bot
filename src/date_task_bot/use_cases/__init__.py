@@ -4,6 +4,7 @@ from .edit_task import EditTaskUseCase
 from .get_all_tasks import GetAllTasksUseCase
 from .get_task import GetTaskUseCase
 from .parse_datetime import ParseDateTimeUseCase
+from .parse_datetime_from_text import ParseDatetimeFromTextUseCase
 from .register_user import RegisterUserUseCase
 from .timezone import GetTimezoneUseCase, SetTimezoneUseCase
 
@@ -12,6 +13,7 @@ __all__ = [
     "GetTimezoneUseCase",
     "SetTimezoneUseCase",
     "ParseDateTimeUseCase",
+    "ParseDatetimeFromTextUseCase",
     "RegisterUserUseCase",
     "GetAllTasksUseCase",
     "GetTaskUseCase",

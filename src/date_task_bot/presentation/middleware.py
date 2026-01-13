@@ -17,6 +17,7 @@ from date_task_bot.use_cases import (
     GetAllTasksUseCase,
     GetTaskUseCase,
     GetTimezoneUseCase,
+    ParseDatetimeFromTextUseCase,
     ParseDateTimeUseCase,
     RegisterUserUseCase,
     SetTimezoneUseCase,
@@ -68,6 +69,7 @@ class DIMiddleware(BaseMiddleware):
         data["get_tz_uc"] = GetTimezoneUseCase(user_settings_repo=user_settings_repo)
         data["set_tz_uc"] = SetTimezoneUseCase(user_settings_repo=user_settings_repo)
         data["parse_datetime_uc"] = ParseDateTimeUseCase()
+        data["parse_datetime_from_text_uc"] = ParseDatetimeFromTextUseCase()
         data["create_task_uc"] = CreateTaskUseCase(
             task_repo=task_repo, user_settings_repo=user_settings_repo
         )
