@@ -3,8 +3,9 @@ from typing import Iterator, TypeVar
 
 import pytest
 
+from date_task_bot.repositories.schemas import TaskUpdate
 from date_task_bot.use_cases import EditTaskUseCase
-from tests.factories import make_reminder
+from tests.factories import make_reminder, make_task
 
 T = TypeVar("T")
 
@@ -97,3 +98,37 @@ def test_update_reminders_mixed(edit_task_uc: EditTaskUseCase):
     assert len(updated_reminders) == 1
     assert updated_reminders[0].offset_seconds == timedelta(hours=-1)
     assert updated_reminders[0].remind_at == new_due_date + timedelta(hours=-1)
+
+
+async def test_displaying_reminders_text(edit_task_uc: EditTaskUseCase, task_repo_mock):
+    task = make_task(reminders=[make_reminder()])
+    task_no_reminders = task.model_copy(update={"reminders": []})
+
+    task_repo_mock.get.return_value = task
+    task_repo_mock.update.return_value = task_no_reminders
+
+    res = await edit_task_uc.execute(
+        data=TaskUpdate(id=task.id, user_id=task.user_id, text="new_text")
+    )
+    assert len(res.reminders) == len(task.reminders)
+
+
+async def test_displaying_reminders_date(edit_task_uc: EditTaskUseCase, task_repo_mock):
+    now = datetime.now(UTC)
+    old_due_date = now + timedelta(hours=4)
+    new_due_date = now + timedelta(hours=5)
+    offset = timedelta(hours=-1)
+    task = make_task(
+        reminders=[
+            make_reminder(offset_seconds=offset, remind_at=old_due_date + offset)
+        ]
+    )
+    task_no_reminders = task.model_copy(update={"reminders": []})
+
+    task_repo_mock.get.return_value = task
+    task_repo_mock.update.return_value = task_no_reminders
+
+    res = await edit_task_uc.execute(
+        data=TaskUpdate(id=task.id, user_id=task.user_id, due_date=new_due_date)
+    )
+    assert len(res.reminders) == len(task.reminders)

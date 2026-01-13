@@ -43,9 +43,7 @@ class EditTaskUseCase:
                 },
             )
 
-        due_date_changed = data.due_date is not None
-
-        task = await self.task_repo.get(id=data.id, load_reminders=due_date_changed)
+        task = await self.task_repo.get(id=data.id, load_reminders=True)
         if not task or task.user_id != data.user_id:
             raise NotFoundException(entity=EntityEnum.TASK, data={"id": data.id})
 
@@ -53,7 +51,7 @@ class EditTaskUseCase:
         if not updated_task:
             raise NotFoundException(entity=EntityEnum.TASK, data={"id": data.id})
 
-        if due_date_changed and data.due_date is not None:
+        if data.due_date is not None:
             updated_reminders = self.update_reminders(
                 reminders=task.reminders, new_due_date=data.due_date
             )
@@ -61,5 +59,7 @@ class EditTaskUseCase:
             updated_task = updated_task.model_copy(
                 update={"reminders": updated_reminders}
             )
+        else:
+            updated_task = updated_task.model_copy(update={"reminders": task.reminders})
 
         return updated_task
