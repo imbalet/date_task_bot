@@ -134,3 +134,12 @@ class ReminderRepository(BaseRepository):
                 [r.model_dump() for r in reminders],
             )
             await session.commit()
+
+    async def recover_stuck_reminders(self) -> None:
+        async with self.session_factory() as session:
+            await session.execute(
+                update(ReminderOrm)
+                .where(ReminderOrm.status == ReminderStatus.PROCESSING)
+                .values(status=ReminderStatus.PENDING)
+            )
+            await session.commit()

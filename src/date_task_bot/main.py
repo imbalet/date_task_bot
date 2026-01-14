@@ -63,10 +63,9 @@ async def main() -> None:
     dp.update.middleware(DIMiddleware(sessionmaker))
 
     sender = Sender(bot=bot)
-    reminder = Reminder(
-        bot=bot, sender=sender, reminder_repo=ReminderRepository(sessionmaker)
-    )
-    reminder.start()
+    reminder_repo = ReminderRepository(sessionmaker)
+    reminder = Reminder(bot=bot, sender=sender, reminder_repo=reminder_repo)
+    await reminder.start()
 
     await dp.start_polling(bot)
 

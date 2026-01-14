@@ -70,10 +70,11 @@ class Reminder:
                 logger.critical("Reminder loop stopped unexpectedly.", exc_info=True)
                 pass
 
-    def start(self):
+    async def start(self):
         self.workers = [
             asyncio.create_task(self.worker()) for _ in range(self.concurrent_sending)
         ]
+        await self.reminder_repo.recover_stuck_reminders()
         self.loop = asyncio.create_task(self.reminder_loop())
         logger.info("Reminder service started.")
 

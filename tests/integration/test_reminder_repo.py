@@ -276,3 +276,46 @@ async def test_update_all(
             assert reminder == saved_reminders[0]
         else:
             assert reminder in updated_reminders
+
+
+async def test_recover_stuck_reminders(
+    async_session_factory,
+    reminder_repo: ReminderRepository,
+    task_without_reminders_in_db: TaskResponse,
+):
+    delta1 = timedelta(hours=-1)
+    reminder1 = make_reminder(
+        task_id=task_without_reminders_in_db.id,
+        remind_at=datetime.now(UTC) + delta1,
+        offset_seconds=delta1,
+    )
+    delta2 = timedelta(hours=-2)
+    reminder2 = make_reminder(
+        task_id=task_without_reminders_in_db.id,
+        remind_at=datetime.now(UTC) + delta2,
+        offset_seconds=delta2,
+    )
+
+    r1_db = await create_entity(
+        async_session_factory,
+        make_reminder_orm(
+            reminder1,
+            status=ReminderStatus.PENDING,
+        ),
+    )
+    r2_db = await create_entity(
+        async_session_factory,
+        make_reminder_orm(
+            reminder2,
+            status=ReminderStatus.PROCESSING,
+        ),
+    )
+    assert r1_db.status == ReminderStatus.PENDING
+    assert r2_db.status == ReminderStatus.PROCESSING
+
+    await reminder_repo.recover_stuck_reminders()
+    from_db1 = await get_from_db_by_pk(async_session_factory, ReminderOrm, r1_db.id)
+    from_db2 = await get_from_db_by_pk(async_session_factory, ReminderOrm, r2_db.id)
+
+    assert from_db1.status == ReminderStatus.PENDING
+    assert from_db2.status == ReminderStatus.PENDING
