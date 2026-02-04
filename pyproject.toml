@@ -12,6 +12,7 @@ dependencies = [
     "dateparser>=1.2.2",
     "pydantic>=2.11.10",
     "pydantic-settings>=2.11.0",
+    "sqlalchemy>=2.0.44",
 ]
 
 [tool.setuptools.packages.find]
