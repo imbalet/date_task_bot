@@ -29,7 +29,7 @@ class Config(BaseSettings):
         if self.DB_HOST:
             return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         else:
-            return f"sqlite+aiosqlite:///./{self.SQLITE_DB_NAME}.db"
+            return f"sqlite+aiosqlite:///./database/{self.SQLITE_DB_NAME}.db"
 
     model_config = SettingsConfigDict(env_file=".env", extra="allow")
 

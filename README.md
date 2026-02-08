@@ -132,7 +132,7 @@ docker volume create database
 docker run \
     -d \
     --env-file .env \
-    -v database:/app/database.db \
+    -v database:/app/database \
     --name date-task-bot date-task-bot:latest
 ```
 или для готового образа:
@@ -140,7 +140,7 @@ docker run \
 docker run \
     -d \
     --env-file .env \
-    -v database:/app/database.db \
+    -v database:/app/database \
     --name date-task-bot ghcr.io/imbalet/date_task_bot:dev
 ```
 
