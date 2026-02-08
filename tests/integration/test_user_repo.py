@@ -23,7 +23,7 @@ async def test_create(
     from_db = UserResponse.model_validate(
         await get_from_db_by_pk(async_session_factory, UserOrm, user_create_schema.id)
     )
-    settings = get_from_db_by_filter(
+    settings = await get_from_db_by_filter(
         async_session_factory,
         UserSettingsOrm,
         scalar=True,
