@@ -30,6 +30,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 USER nonroot
 
 WORKDIR /app
-EXPOSE 8000
 
 CMD ["python", "src/date_task_bot/main.py"]
