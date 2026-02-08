@@ -129,7 +129,7 @@ docker volume create database
 #### Запуск:
 
 ```bash
-docker run 
+docker run \
     -d \
     --env-file .env \
     -v database:/app/database.db \
@@ -137,7 +137,7 @@ docker run
 ```
 или для готового образа:
 ```bash
-docker run 
+docker run \
     -d \
     --env-file .env \
     -v database:/app/database.db \
