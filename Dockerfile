@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.12-alpine AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 
 ENV UV_PYTHON_DOWNLOADS=0
@@ -19,9 +19,12 @@ COPY src ./src
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
-FROM python:3.12-slim-bookworm
-RUN groupadd --system --gid 999 nonroot \
- && useradd --system --gid 999 --uid 999 --create-home nonroot
+FROM python:3.12-alpine
+RUN adduser -S -u 999 nonroot
+RUN mkdir -p /app/database \
+    && chown -R nonroot /app/database \
+    && touch /app/app.log \
+    && chown -R nonroot /app/app.log
 
 COPY --from=builder --chown=nonroot:nonroot /app /app
 
