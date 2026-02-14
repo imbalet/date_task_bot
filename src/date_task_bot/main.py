@@ -13,6 +13,7 @@ from date_task_bot.config import get_config
 from date_task_bot.database import create_tables, get_sessionmaker
 from date_task_bot.exceptions import AppException
 from date_task_bot.exceptions_handler import app_exceptions_handler
+from date_task_bot.healthcheck import start_healthcheck_server
 from date_task_bot.logger import setup_logger
 from date_task_bot.presentation.middleware import (
     CallbackMessageMiddleware,
@@ -67,11 +68,14 @@ async def main() -> None:
     reminder = Reminder(bot=bot, sender=sender, reminder_repo=reminder_repo)
     await reminder.start()
 
+    health_task = asyncio.create_task(start_healthcheck_server(8000))
+
     await dp.start_polling(bot)
 
     # shutdown
     await reminder.stop()
     await engine.dispose()
+    health_task.cancel()
 
 
 if __name__ == "__main__":
