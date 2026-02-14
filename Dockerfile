@@ -23,8 +23,8 @@ FROM python:3.12-alpine
 RUN adduser -S -u 999 nonroot
 RUN mkdir -p /app/database \
     && chown -R nonroot /app/database \
-    && touch /app/app.log \
-    && chown -R nonroot /app/app.log
+    && mkdir -p /app/logs \
+    && chown -R nonroot /app/logs
 
 COPY --from=builder --chown=nonroot:nonroot /app /app
 
