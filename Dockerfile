@@ -25,7 +25,7 @@ RUN mkdir -p /app/database \
     && chown -R nonroot /app/database \
     && mkdir -p /app/logs \
     && chown -R nonroot /app/logs
-HEALTHCHECK --start-period=20s CMD wget -q --spider http://127.0.0.1:8000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=5s CMD wget -q --spider http://127.0.0.1:8000/health || exit 1
 
 COPY --from=builder --chown=nonroot:nonroot /app /app
 

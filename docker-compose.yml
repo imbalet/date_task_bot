@@ -1,0 +1,15 @@
+services:
+  app:
+    image: ${IMAGE}
+    container_name: date_task_bot
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL}
+      BOT_TOKEN: ${BOT_TOKEN}
+    volumes:
+      - database:/app/database
+      - logs:/app/logs
+    restart: on-failure:10
+
+volumes:
+  database:
+  logs:
