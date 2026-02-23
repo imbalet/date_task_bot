@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import pytest
 
@@ -273,9 +273,23 @@ edge_cases = (
     ("00:01", dt(day=2, hour=0, min=1), dt(day=1, hour=11, min=0)),
 )
 
+cross_period_check = (
+    # next year
+    ("9:00", dt(hour=9), dt(y=2024, month=12, day=31, hour=23)),
+    ("через 3 часа", dt(hour=2), dt(y=2024, month=12, day=31, hour=23)),
+    ("среда", dt(hour=0), dt(y=2024, month=12, day=31, hour=23)),
+    # next month
+    ("9:00", dt(month=2, hour=9), dt(day=31, hour=23)),
+    ("через 3 часа", dt(month=2, hour=2), dt(day=31, hour=23)),
+    ("суббота", dt(month=2, day=1, hour=0), dt(day=31, hour=10)),
+    # next week
+    ("9:00", dt(day=6, hour=9), dt(day=5, hour=23)),
+    ("через 3 часа", dt(day=6, hour=2), dt(day=5, hour=23)),
+)
+
 
 @pytest.mark.parametrize(
-    "text, expected_datetime, now",
+    "text, expected_datetime_, now",
     [
         *hours_check,
         *hours_with_minutes_check,
@@ -293,24 +307,28 @@ edge_cases = (
         *leap_year_check,
         *noise_check,
         *edge_cases,
+        *cross_period_check,
     ],
+)
+@pytest.mark.parametrize(
+    "timezone",
+    ["UTC", "Europe/Moscow", "Asia/Tokyo"],
 )
 def test_parse(
     parse_datetime_uc: ParseDateTimeUseCase,
     text: str,
-    expected_datetime: datetime,
+    expected_datetime_: datetime,
     now: datetime,
+    timezone: str,
 ):
+    # convert to UTC
+    expected_datetime = expected_datetime_.replace(
+        tzinfo=ZoneInfo(timezone)
+    ).astimezone(UTC)
 
-    original_build_settings = parse_datetime_uc._build_settings
-
-    def build_settings_mock(cls, user_tz_str):
-        settings = original_build_settings(user_tz_str)
-        settings["RELATIVE_BASE"] = now.replace(tzinfo=None)
-        return settings
-
-    with patch.object(ParseDateTimeUseCase, "_build_settings", build_settings_mock):
-        res = parse_datetime_uc.execute("UTC", text)
+    res = parse_datetime_uc.execute(
+        user_tz_str=timezone, text=text, now=now.replace(tzinfo=None)
+    )
 
     assert res.success
-    assert res.date == expected_datetime.replace(tzinfo=UTC)
+    assert res.date == expected_datetime
