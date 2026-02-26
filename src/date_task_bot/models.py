@@ -63,7 +63,7 @@ class UserOrm(Base):
         cascade="all, delete-orphan", lazy="raise", uselist=False
     )
 
-    def __init__(self, id: str, settings: UserSettingsOrm | None = None):
+    def __init__(self, id: str, settings: UserSettingsOrm | None = None) -> None:
         self.id = id
         self.settings = settings or UserSettingsOrm()
 
@@ -83,7 +83,7 @@ class UserSettingsOrm(Base):
         self,
         timings: list[DefaultRemindTimingOrm] | None = None,
         user_id: str | None = None,
-    ):
+    ) -> None:
         self.timings = timings or [
             DefaultRemindTimingOrm(offset_seconds=t) for t in DEFAULT_OFFSETS
         ]
@@ -104,7 +104,9 @@ class DefaultRemindTimingOrm(Base):
         UniqueConstraint("settings_id", "offset_seconds", name="uq_settings_timings"),
     )
 
-    def __init__(self, offset_seconds: timedelta, settings_id: UUID | None = None):
+    def __init__(
+        self, offset_seconds: timedelta, settings_id: UUID | None = None
+    ) -> None:
         if settings_id:
             self.settings_id = settings_id
         self.offset_seconds = offset_seconds
@@ -136,7 +138,7 @@ class TaskOrm(Base):
         text: str,
         due_date: datetime,
         reminders: list[ReminderOrm],
-    ):
+    ) -> None:
         self.user_id = user_id
         self.text = text
         self.due_date = due_date
@@ -165,7 +167,7 @@ class ReminderOrm(Base):
         remind_at: datetime,
         offset_seconds: timedelta,
         task_id: UUID | None = None,
-    ):
+    ) -> None:
         if task_id:
             self.task_id = task_id
         self.remind_at = remind_at

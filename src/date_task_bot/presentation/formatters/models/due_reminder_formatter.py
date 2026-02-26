@@ -11,7 +11,6 @@ from .datetime_formatter import DateFormat, TimeDeltaFormatter
 
 
 class DueReminderFormatter(BaseFormatterWithDate):
-
     def __init__(self, user_tz: str) -> None:
         super().__init__(user_tz)
         self.delta_formatter = TimeDeltaFormatter()

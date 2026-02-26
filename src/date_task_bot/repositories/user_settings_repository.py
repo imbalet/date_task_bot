@@ -10,7 +10,6 @@ from .schemas import UserSettingsResponse, UserSettingsUpdate
 
 
 class UserSettingsRepository(BaseRepository):
-
     async def get_by_user_id(
         self, user_id: str, load_offsets: bool = False
     ) -> UserSettings:

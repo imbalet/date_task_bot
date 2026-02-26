@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from logging import getLogger
 from uuid import UUID
 
 from sqlalchemy import delete, func, select, update
@@ -18,9 +19,10 @@ from .schemas import (
     TaskUpdate,
 )
 
+logger = getLogger(__name__)
+
 
 class TaskRepository(BaseRepository):
-
     async def create(self, task: TaskCreate) -> Task:
         async with self.session_factory() as session:
             try:
@@ -39,10 +41,10 @@ class TaskRepository(BaseRepository):
                 await session.flush()
                 await session.commit()
                 return TaskResponse.model_validate(new)
-            except IntegrityError:
+            except IntegrityError as e:
                 await session.rollback()
-                # logging
-                raise AppException(entity=EntityEnum.TASK)
+                logger.exception("Integrity error in TaskRepository", exc_info=True)
+                raise AppException(entity=EntityEnum.TASK) from e
 
     async def get(self, id: UUID, load_reminders: bool = False) -> Task | None:
         async with self.session_factory() as session:

@@ -42,7 +42,11 @@ hours_check = (
     ("23:00", dt(day=1, hour=23), dt(day=1, hour=11)),
     ("09:00", dt(day=1, hour=9), dt(day=1, hour=8)),
     ("9:00", dt(day=1, hour=9), dt(day=1, hour=8)),
-    # ("в 12 часов", dt(day=1, hour=12, min=0), dt( month=1, day=1, hour=11, min=0)), not working now
+    # (
+    #     "в 12 часов",
+    #     dt(day=1, hour=12, min=0),
+    #     dt(month=1, day=1, hour=11, min=0),
+    # ),
 )
 
 hours_with_minutes_check = (
@@ -65,10 +69,26 @@ dates_check = (
         dt(month=1, day=2, hour=12, min=0),
         dt(month=1, day=1, hour=11, min=0),
     ),
-    # ("2.01 12:00", dt( month=1, day=2, hour=12, min=0), dt( month=1, day=1, hour=11, min=0)), not working now
-    # ("02.01 12:00", dt( month=1, day=2, hour=12, min=0), dt( month=1, day=1, hour=11, min=0)),
-    # ("02.01.25 12:00", dt( month=1, day=2, hour=12, min=0), dt( month=1, day=1, hour=11, min=0)),
-    # ("02.01.2025 12:00", dt( month=1, day=2, hour=12, min=0), dt( month=1, day=1, hour=11, min=0)),
+    # (
+    #     "2.01 12:00",
+    #     dt(month=1, day=2, hour=12, min=0),
+    #     dt(month=1, day=1, hour=11, min=0),
+    # ),
+    # (
+    #     "02.01 12:00",
+    #     dt(month=1, day=2, hour=12, min=0),
+    #     dt(month=1, day=1, hour=11, min=0),
+    # ),
+    # (
+    #     "02.01.25 12:00",
+    #     dt(month=1, day=2, hour=12, min=0),
+    #     dt(month=1, day=1, hour=11, min=0),
+    # ),
+    # (
+    #     "02.01.2025 12:00",
+    #     dt(month=1, day=2, hour=12, min=0),
+    #     dt(month=1, day=1, hour=11, min=0),
+    # ),
     (
         "3 января 12:00",
         dt(month=1, day=3, hour=12, min=0),

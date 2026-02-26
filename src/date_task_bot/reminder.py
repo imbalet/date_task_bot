@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 from logging import getLogger
 
 from aiogram import Bot
@@ -32,7 +33,7 @@ class Reminder:
         self.workers = []
         self.loop = None
 
-    async def worker(self):
+    async def worker(self) -> None:
         while True:
             reminder: DueReminder = await self.queue.get()
 
@@ -54,7 +55,7 @@ class Reminder:
 
             self.queue.task_done()
 
-    async def reminder_loop(self):
+    async def reminder_loop(self) -> None:
         while 1:
             try:
                 due_reminders = await self.reminder_repo.reserve_due_reminders()
@@ -70,7 +71,7 @@ class Reminder:
                 logger.critical("Reminder loop stopped unexpectedly.", exc_info=True)
                 pass
 
-    async def start(self):
+    async def start(self) -> None:
         self.workers = [
             asyncio.create_task(self.worker()) for _ in range(self.concurrent_sending)
         ]
@@ -78,13 +79,11 @@ class Reminder:
         self.loop = asyncio.create_task(self.reminder_loop())
         logger.info("Reminder service started.")
 
-    async def stop(self):
+    async def stop(self) -> None:
         if self.loop:
             self.loop.cancel()
-            try:
+            with contextlib.suppress(BaseException):
                 await self.loop
-            except BaseException:
-                pass
         for i in self.workers:
             i.cancel()
         await asyncio.gather(*self.workers, return_exceptions=True)

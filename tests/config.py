@@ -2,7 +2,6 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Config(BaseSettings):
-
     TEST_DB_HOST: str | None = None
     TEST_DB_PORT: int | None = None
     TEST_DB_NAME: str | None = None
@@ -10,7 +9,7 @@ class Config(BaseSettings):
     TEST_DB_PASS: str | None = None
 
     @property
-    def DB_URL(self) -> str:
+    def DB_URL(self) -> str:  # noqa: N802
         if self.TEST_DB_HOST:
             return (
                 f"postgresql+asyncpg://{self.TEST_DB_USER}:{self.TEST_DB_PASS}@"

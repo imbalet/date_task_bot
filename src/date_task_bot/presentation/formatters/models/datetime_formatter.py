@@ -25,7 +25,7 @@ class DateFormatter:
 
 
 class TimeDeltaFormatter:
-    def format(self, delta: timedelta):
+    def format(self, delta: timedelta) -> str:
         if abs(delta.total_seconds()) < 60:
             return ""
         return format_timedelta(

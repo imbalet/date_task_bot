@@ -1,9 +1,9 @@
-from enum import Enum
+from enum import StrEnum
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class LogLevels(str, Enum):
+class LogLevels(StrEnum):
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
@@ -25,7 +25,7 @@ class Config(BaseSettings):
     SQLITE_DB_NAME: str = "database"
 
     @property
-    def DB_URL(self) -> str:
+    def DB_URL(self) -> str:  # noqa: N802
         if self.DB_HOST:
             return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
         else:

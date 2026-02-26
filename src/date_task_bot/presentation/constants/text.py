@@ -1,9 +1,10 @@
+# ruff: noqa: E501
 from collections import defaultdict
-from enum import Enum
+from enum import StrEnum
 from warnings import warn
 
 
-class MsgKey(str, Enum):
+class MsgKey(StrEnum):
     # pagination
     CANCEL = "cancel"
     BACK = "back"
@@ -126,7 +127,7 @@ _TEXTS: dict[MsgKey, str] = {
 }
 
 
-def missing_handler():
+def missing_handler() -> str:
     warn("No translation for key", stacklevel=2)
     return "<?>"
 
@@ -134,12 +135,12 @@ def missing_handler():
 TEXTS = defaultdict(missing_handler, _TEXTS)
 
 
-def validate_texts():
+def validate_texts() -> None:
     missing = set(MsgKey) - set(TEXTS.keys())
     extra = set(TEXTS.keys()) - set(MsgKey)
 
     if missing:
-        warn(f"No text for: {missing}")
+        warn(f"No text for: {missing}", stacklevel=2)
 
     if extra:
-        warn(f"Extra key in TEXTS dict: {extra}")
+        warn(f"Extra key in TEXTS dict: {extra}", stacklevel=2)

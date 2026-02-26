@@ -1,5 +1,5 @@
 import math
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel
 
@@ -20,7 +20,7 @@ class PaginationRequest(BaseModel):
 T = TypeVar("T")
 
 
-class PaginationResponse(PaginationRequest, Generic[T]):
+class PaginationResponse[T](PaginationRequest):
     total_items: int
     items: list[T]
 

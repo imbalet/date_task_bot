@@ -7,9 +7,11 @@ from date_task_bot.schemas import User
 
 @dataclass
 class RegisterUserUseCaseResult:
-    """
-    user_exists (bool): True if user already exists.\n
-    user (User): User object.
+    """Result of executing RegisterUserUseCase.
+
+    Fields:
+        user_exists (bool): True if user already exists.
+        user (User): User object.
     """
 
     user_exists: bool
@@ -20,7 +22,7 @@ class RegisterUserUseCase:
     def __init__(self, user_repo: UserRepository) -> None:
         self.user_repo = user_repo
 
-    async def execute(self, data: UserCreate):
+    async def execute(self, data: UserCreate) -> RegisterUserUseCaseResult:
         user = await self.user_repo.get(id=data.id, load_settings=True)
 
         if user:

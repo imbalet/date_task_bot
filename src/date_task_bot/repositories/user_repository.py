@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import selectinload
 
@@ -8,9 +10,10 @@ from date_task_bot.schemas import User
 from .base_repository import BaseRepository
 from .schemas import UserCreate, UserResponse
 
+logger = getLogger(__name__)
+
 
 class UserRepository(BaseRepository):
-
     async def create(self, user: UserCreate) -> User:
         async with self.session_factory() as session:
             try:
@@ -19,11 +22,12 @@ class UserRepository(BaseRepository):
                 await session.flush()
                 await session.commit()
                 return UserResponse.model_validate(new)
-            except IntegrityError:
+            except IntegrityError as e:
                 await session.rollback()
+                logger.exception("Integrity error in UserRepository", exc_info=True)
                 raise AlreadyExistsException(
                     entity=EntityEnum.USER, data={"id": user.id}
-                )
+                ) from e
 
     async def get(
         self,

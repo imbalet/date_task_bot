@@ -7,7 +7,6 @@ from date_task_bot.schemas import Reminder, Task
 
 
 class EditTaskUseCase:
-
     def __init__(
         self, task_repo: TaskRepository, reminder_repo: ReminderRepository
     ) -> None:

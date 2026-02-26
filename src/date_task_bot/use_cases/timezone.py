@@ -15,7 +15,6 @@ class SetTimezoneUseCaseResult:
 
 
 class SetTimezoneUseCase:
-
     def __init__(self, user_settings_repo: UserSettingsRepository) -> None:
         self.user_settings_repo = user_settings_repo
 

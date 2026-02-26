@@ -1,7 +1,10 @@
-from typing import Any, Awaitable, Callable, Dict
+from collections.abc import Awaitable, Callable
+from logging import getLogger
+from typing import Any
 
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import CallbackQuery, InaccessibleMessage, TelegramObject, Update
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 from date_task_bot.presentation.utils import KeyboardBuilder
 from date_task_bot.repositories import (
@@ -23,17 +26,19 @@ from date_task_bot.use_cases import (
     SetTimezoneUseCase,
 )
 
+logger = getLogger(__name__)
+
 
 class DIMiddleware(BaseMiddleware):
-    def __init__(self, sessionmaker):
+    def __init__(self, sessionmaker: async_sessionmaker) -> None:
         super().__init__()
         self.sessionmaker = sessionmaker
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
         event: TelegramObject,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
 
         # DB, repositories
@@ -53,15 +58,16 @@ class DIMiddleware(BaseMiddleware):
         chat_id = None
         if isinstance(event, Update):
             if event.message:
+                # TODO: change to user id
                 chat_id = event.message.chat.id
             elif event.callback_query:
                 chat_id = event.callback_query.message.chat.id  # type: ignore
             else:
-                # TODO: LOGGING, handle
-                pass
+                logger.error(f"No chat id found in event {type(event)}")
+                return
         else:
-            # TODO: LOGGING, handle
-            pass
+            logger.error(f"Unknown event type {type(event)}")
+            return
 
         data["chat_id"] = str(chat_id)
 
@@ -87,9 +93,9 @@ class DIMiddleware(BaseMiddleware):
 class CallbackMessageMiddleware(BaseMiddleware):
     async def __call__(  # type: ignore
         self,
-        handler: Callable[[CallbackQuery, Dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[CallbackQuery, dict[str, Any]], Awaitable[Any]],
         event: CallbackQuery,
-        data: Dict[str, Any],
+        data: dict[str, Any],
     ) -> Any:
         if event.message is None:
             await event.answer("Сообщение не найдено", show_alert=True)

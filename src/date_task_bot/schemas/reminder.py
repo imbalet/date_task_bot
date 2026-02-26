@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from .base_schema import BaseAppSchema
 
 
-class ReminderStatus(str, Enum):
+class ReminderStatus(StrEnum):
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
     SENT = "SENT"

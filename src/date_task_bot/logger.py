@@ -4,7 +4,7 @@ from pathlib import Path
 from date_task_bot.config import get_config
 
 
-def setup_logger():
+def setup_logger() -> None:
     config = get_config()
 
     log_dir = Path("./logs")

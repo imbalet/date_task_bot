@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 from .base_schema import BaseAppSchema
 from .task import Task
 from .user_settings import UserSettings

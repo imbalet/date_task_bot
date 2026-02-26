@@ -1,5 +1,7 @@
+from logging import getLogger
 from typing import cast
 
+from aiogram.client.bot import Bot
 from aiogram.types import ErrorEvent, Update
 
 from date_task_bot.exceptions import (
@@ -11,6 +13,8 @@ from date_task_bot.exceptions import (
 )
 from date_task_bot.presentation.constants import TEXTS, MsgKey
 
+logger = getLogger(__name__)
+
 ENTITY_TO_MSG_KEY = {
     EntityEnum.USER: MsgKey.USER,
     EntityEnum.TASK: MsgKey.TASK,
@@ -20,7 +24,7 @@ ENTITY_TO_MSG_KEY = {
 }
 
 
-def get_chat_info(update: Update):
+def get_chat_info(update: Update) -> tuple[int | None, Bot | None]:
     chat_id = None
     bot = None
     if update.message:
@@ -32,10 +36,17 @@ def get_chat_info(update: Update):
     return chat_id, bot
 
 
-async def app_exceptions_handler(event: ErrorEvent):
+async def app_exceptions_handler(event: ErrorEvent) -> bool:
     chat_id, bot = get_chat_info(event.update)
     exception = event.exception
     exception = cast(AppException, exception)
+
+    logger.exception(
+        "AppException handled: type=%s entity=%s data=%s",
+        type(exception).__name__,
+        exception.entity,
+        exception.data,
+    )
 
     entity_str = TEXTS[ENTITY_TO_MSG_KEY.get(exception.entity, MsgKey.OTHER_ENTITY)]
 
@@ -64,5 +75,4 @@ async def app_exceptions_handler(event: ErrorEvent):
                 )
             case _:
                 await bot.send_message(chat_id, TEXTS[MsgKey.UNEXPECTED_ERROR])
-    # logging here
     return True

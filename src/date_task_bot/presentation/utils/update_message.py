@@ -1,20 +1,26 @@
+from logging import getLogger
+from typing import Any
+
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     InaccessibleMessage,
+    InlineKeyboardMarkup,
     MaybeInaccessibleMessageUnion,
     Message,
 )
 
 from date_task_bot.presentation.utils import CallbackQueryWithMessage
 
+logger = getLogger(__name__)
+
 
 async def update_main_message(
     state: FSMContext,
     event: MaybeInaccessibleMessageUnion | CallbackQueryWithMessage,
     text: str,
-    reply_markup=None,
+    reply_markup: InlineKeyboardMarkup | None = None,
     create_new: bool = False,
-    **kwargs,
+    **kwargs: Any,  # noqa: ANN401
 ) -> None:
     if isinstance(event, InaccessibleMessage):
         bot = event.bot
@@ -46,6 +52,7 @@ async def update_main_message(
                 await message.delete()
             return
         except Exception:
+            logger.warning("error to send message", stacklevel=2)
             pass
 
     msg = await message.answer(text=text, reply_markup=reply_markup, **kwargs)

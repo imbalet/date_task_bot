@@ -1,8 +1,11 @@
 from datetime import UTC, datetime
+from logging import getLogger
 from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel, ConfigDict
 from sqlalchemy import inspect
+
+logger = getLogger(__name__)
 
 
 def ensure_timezone(d: datetime | None) -> datetime | None:
@@ -19,7 +22,6 @@ OptionalAwareDatetime = Annotated[datetime | None, AfterValidator(ensure_timezon
 
 
 class RepositoryDTO(BaseModel):
-
     @classmethod
     def model_validate(cls, obj, **kwargs):
         def serialize(obj):
@@ -28,9 +30,10 @@ class RepositoryDTO(BaseModel):
 
             insp = inspect(obj)
             data = {}
-            for name in insp.attrs.keys():
+            for name in insp.attrs:
                 if name in insp.unloaded:
                     continue
+                value = None
                 try:
                     value = getattr(obj, name)
                     if hasattr(value, "__mapper__"):
@@ -42,6 +45,10 @@ class RepositoryDTO(BaseModel):
                         ]
                     data[name] = value
                 except Exception:
+                    logger.warning(
+                        f"Error convert orm {type(obj)} field {name}"
+                        + f"with value {value} to pydantic dto"
+                    )
                     continue
             return data
 

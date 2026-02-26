@@ -5,7 +5,6 @@ from date_task_bot.repositories import TaskRepository
 
 
 class DeleteTaskUseCase:
-
     def __init__(self, task_repo: TaskRepository) -> None:
         self.task_repo = task_repo
 

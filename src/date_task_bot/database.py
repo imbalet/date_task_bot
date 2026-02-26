@@ -16,17 +16,16 @@ from date_task_bot.models import Base
 def ensure_sqlite_dir(db_url: str) -> None:
     url = make_url(db_url)
 
-    if url.drivername.startswith("sqlite"):
-        if url.database:
-            db_path = Path(url.database)
+    if url.drivername.startswith("sqlite") and url.database:
+        db_path = Path(url.database)
 
-            if not db_path.is_absolute():
-                db_path = Path.cwd() / db_path
+        if not db_path.is_absolute():
+            db_path = Path.cwd() / db_path
 
-            db_path.parent.mkdir(parents=True, exist_ok=True)
+        db_path.parent.mkdir(parents=True, exist_ok=True)
 
 
-async def create_tables(engine):
+async def create_tables(engine: AsyncEngine) -> None:
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -45,16 +44,16 @@ async def get_sessionmaker() -> tuple[AsyncEngine, async_sessionmaker[AsyncSessi
     )
 
     @event.listens_for(engine.sync_engine, "connect")
-    def enable_sqlite_fk(dbapi_connection, connection_record):
+    def enable_sqlite_fk(dbapi_connection, connection_record) -> None:
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
 
-    AsyncSessionLocal = async_sessionmaker(
+    async_session = async_sessionmaker(
         bind=engine,
         class_=AsyncSession,
         expire_on_commit=False,
         autoflush=False,
     )
 
-    return engine, AsyncSessionLocal
+    return engine, async_session

@@ -37,7 +37,7 @@ from tests.integration.utils import create_entity
 async def async_session_factory():
     engine = create_async_engine(get_config().DB_URL, echo=True, future=True)
 
-    AsyncSessionLocal = async_sessionmaker(
+    async_session = async_sessionmaker(
         bind=engine,
         class_=AsyncSession,
         expire_on_commit=False,
@@ -48,7 +48,7 @@ async def async_session_factory():
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-    yield AsyncSessionLocal
+    yield async_session
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)

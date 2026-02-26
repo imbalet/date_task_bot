@@ -1,5 +1,5 @@
+from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
-from typing import Iterator, TypeVar
 
 import pytest
 
@@ -7,10 +7,8 @@ from date_task_bot.repositories.schemas import TaskUpdate
 from date_task_bot.use_cases import EditTaskUseCase
 from tests.factories import make_reminder, make_task
 
-T = TypeVar("T")
 
-
-def same_id_iter(
+def same_id_iter[T](
     *lists: list[T], key_field: str, check_elements: bool = True
 ) -> Iterator[tuple[T, ...]]:
     dicts = [{getattr(obj, key_field): obj for obj in lst} for lst in lists]

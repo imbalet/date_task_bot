@@ -7,10 +7,12 @@ from dateparser.search import search_dates
 
 @dataclass
 class ParseDateTimeUseCaseResult:
-    """
-    success (bool): False if there is no datetime in the text.\n
-    date (datetime): Parsed datetime in the UTC time zone from text.\n
-    text (str): The text without datetime.
+    """Result of executing ParseDateTimeUseCase.
+
+    Fields:
+        success (bool): False if there is no datetime in the text.
+        date (datetime): Parsed datetime in the UTC time zone from text.
+        text (str): The text without datetime.
     """
 
     success: bool = True
@@ -30,12 +32,12 @@ class ParseDateTimeUseCase:
         Args:
             user_tz_str (str): Timezone in IANA format.
             text (str): Text with datetime.
-            now (datetime | None, optional): Base datetime. Uses now() if not passed. Defaults to None.
+            now (datetime | None, optional): Base datetime. Uses now() if not passed.
+                Defaults to None.
 
         Returns:
             ParseDateTimeUseCaseResult: Parsing result.
         """
-
         user_tz = ZoneInfo(user_tz_str)
         base_datetime = now or datetime.now(user_tz).replace(tzinfo=None)
         settings = self._build_settings(relative_base=base_datetime)
@@ -48,9 +50,8 @@ class ParseDateTimeUseCase:
         if not res:
             return ParseDateTimeUseCaseResult(success=False)
         date_text, date = res
-        if is_only_time:
-            if date < base_datetime:
-                date += timedelta(days=1)
+        if is_only_time and date < base_datetime:
+            date += timedelta(days=1)
 
         cleaned_text = text.replace(date_text, "").strip()
 
@@ -68,6 +69,7 @@ class ParseDateTimeUseCase:
 
     def _is_only_time(self, text: str) -> bool:
         """Returns True if only time is present in the text.
+
         Parses text twice with different base dates.
         If the date parts of results match base dates,
         only time is present in the text and True is returned, otherwise False
@@ -95,9 +97,7 @@ class ParseDateTimeUseCase:
         _, dt1 = res1
         _, dt2 = res2
 
-        if dt1.date() == base1.date() and dt2.date() == base2.date():
-            return True
-        return False
+        return bool(dt1.date() == base1.date() and dt2.date() == base2.date())
 
     def _build_settings(self, relative_base: datetime) -> dict:
         return {

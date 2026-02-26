@@ -8,7 +8,6 @@ from date_task_bot.schemas import Task
 
 
 class GetTaskUseCase:
-
     def __init__(self, task_repo: TaskRepository) -> None:
         self.task_repo = task_repo
 

@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from logging import getLogger
 from uuid import UUID
 
 from sqlalchemy import delete, insert, select, text, update
@@ -11,9 +12,10 @@ from date_task_bot.schemas import Reminder, ReminderStatus
 from .base_repository import BaseRepository
 from .schemas import DueReminder, ReminderCreate, ReminderResponse
 
+logger = getLogger(__name__)
+
 
 class ReminderRepository(BaseRepository):
-
     async def create(self, reminder: ReminderCreate) -> Reminder:
         async with self.session_factory() as session:
             try:
@@ -26,9 +28,10 @@ class ReminderRepository(BaseRepository):
                 await session.commit()
                 await session.refresh(new)
                 return ReminderResponse.model_validate(new)
-            except IntegrityError:
+            except IntegrityError as e:
                 await session.rollback()
-                raise AppException(entity=EntityEnum.REMINDER)
+                logger.exception("Integrity error in ReminderRepository", exc_info=True)
+                raise AppException(entity=EntityEnum.REMINDER) from e
 
     async def bulk_create(self, reminders: list[ReminderCreate]) -> list[Reminder]:
         async with self.session_factory() as session:
@@ -111,9 +114,10 @@ class ReminderRepository(BaseRepository):
 
                 return [DueReminder.model_validate(i) for i in result]
 
-            except IntegrityError:
+            except IntegrityError as e:
                 await session.rollback()
-                raise AppException(entity=EntityEnum.REMINDER)
+                logger.exception("Integrity error in ReminderRepository", exc_info=True)
+                raise AppException(entity=EntityEnum.REMINDER) from e
 
     async def delete(self, id: UUID) -> None:
         async with self.session_factory() as session:

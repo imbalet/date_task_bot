@@ -12,7 +12,6 @@ from .reminder_formatter import ReminderFormatter
 
 
 class TaskFormatter(BaseFormatterWithDate):
-
     def __init__(self, user_tz: str) -> None:
         super().__init__(user_tz)
         self.reminder_formatter = ReminderFormatter(user_tz=user_tz)
@@ -44,7 +43,6 @@ class TaskShortFormatter(BaseFormatterWithDate):
 
 
 class TaskListFormatter(BaseFormatterWithDate):
-
     def __init__(self, user_tz: str) -> None:
         super().__init__(user_tz)
         self.task_formatter = TaskShortFormatter(user_tz=user_tz)

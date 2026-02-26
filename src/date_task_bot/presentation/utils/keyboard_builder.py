@@ -1,3 +1,5 @@
+from typing import Any, Self
+
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import (
     InlineKeyboardButton,
@@ -14,7 +16,7 @@ from date_task_bot.presentation.constants.text import MsgKey
 
 
 class InlineKeyboardFactory:
-    def __init__(self, row_width: int = 2):
+    def __init__(self, row_width: int = 2) -> None:
         self._keyboard: list[list[InlineKeyboardButton]] = []
         self._current_row: list[InlineKeyboardButton] = []
         self._row_width = row_width
@@ -68,13 +70,16 @@ class InlineKeyboardFactory:
         self,
         text: MsgKey,
         callback_data: CallbackData,
-        **kwargs,
+        **kwargs: Any,  # noqa: ANN401
     ) -> "InlineKeyboardFactory":
         """Adds a single button to the current row.
 
         Args:
             text (MsgKey): text of the button.
-            cbdata (CallbackData): callback of the button.
+            callback_data (CallbackData): callback of the button.
+            **kwargs (Any): Additional keyword arguments forwarded to
+                InlineKeyboardButton. These allow configuring optional
+                Telegram button fields.
         """
         btn = InlineKeyboardButton(
             text=TEXTS[text], callback_data=callback_data.pack(), **kwargs
@@ -89,13 +94,16 @@ class InlineKeyboardFactory:
         self,
         text: str,
         callback_data: CallbackData,
-        **kwargs,
+        **kwargs: Any,  # noqa: ANN401
     ) -> "InlineKeyboardFactory":
         """Adds a single button with pure text to the current row.
 
         Args:
             text (MsgKey): text of the button.
-            cbdata (CallbackData): callback of the button.
+            callback_data (CallbackData): callback of the button.
+            **kwargs (Any): Additional keyword arguments forwarded to
+                InlineKeyboardButton. These allow configuring optional
+                Telegram button fields.
         """
         btn = InlineKeyboardButton(
             text=text, callback_data=callback_data.pack(), **kwargs
@@ -148,7 +156,6 @@ class InlineKeyboardFactory:
 
 
 class KeyboardBuilder(InlineKeyboardFactory):
-
     def __init__(
         self,
         row_width: int = 2,
@@ -156,7 +163,7 @@ class KeyboardBuilder(InlineKeyboardFactory):
         add_cancel_button: bool = False,
         add_confirm_button: bool = False,
         extra_buttons: list[tuple[MsgKey, CallbackData]] | None = None,
-    ):
+    ) -> None:
         super().__init__(row_width)
         self._back_btn = add_back_button
         self._cancel_btn = add_cancel_button
@@ -170,7 +177,7 @@ class KeyboardBuilder(InlineKeyboardFactory):
         add_cancel_button: bool = False,
         add_confirm_button: bool = False,
         extra_buttons: list[tuple[MsgKey, CallbackData]] | None = None,
-    ):
+    ) -> Self:
         self._row_width = row_width
         self._back_btn = add_back_button
         self._cancel_btn = add_cancel_button
@@ -189,11 +196,3 @@ class KeyboardBuilder(InlineKeyboardFactory):
         self.row_buttons_tuple(*service_buttons)
         self.row_buttons_tuple(*self._extra_btns)
         return super().as_markup()
-
-    @staticmethod
-    def markup(func):
-        def wrapper(self, *args, **kwargs):
-            func(self, *args, **kwargs)
-            return self.as_markup()
-
-        return wrapper

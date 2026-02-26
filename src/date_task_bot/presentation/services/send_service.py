@@ -1,6 +1,8 @@
 import asyncio
+from collections.abc import Awaitable, Callable
 from functools import wraps
 from logging import getLogger
+from typing import ParamSpec, TypeVar
 
 from aiogram import Bot
 from aiogram.exceptions import (
@@ -12,6 +14,10 @@ from aiogram.types import Message
 
 from .rate_limiter import RateLimiter
 
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
 logger = getLogger(__name__)
 
 
@@ -21,10 +27,18 @@ class Sender:
         self.bot = bot
 
     @staticmethod
-    def error_handler(retries: int = 3):
-        def error_handler_dec(func):
+    def error_handler(
+        retries: int = 3,
+    ) -> Callable[
+        [Callable[P, Awaitable[R]]],
+        Callable[P, Awaitable[R | None]],
+    ]:
+        def error_handler_dec(
+            func: Callable[P, Awaitable[R]],
+        ) -> Callable[P, Awaitable[R | None]]:
+
             @wraps(func)
-            async def wrapper(*args, **kwargs):
+            async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R | None:
                 attempt = 0
                 while attempt <= retries:
                     try:
@@ -43,6 +57,7 @@ class Sender:
 
                     except Exception:
                         logger.error("Unexpected send error", exc_info=True)
+
                 return None
 
             return wrapper
@@ -50,11 +65,11 @@ class Sender:
         return error_handler_dec
 
     @error_handler()
-    async def send_message(self, chat_id: int, text: str, **kwargs):
+    async def send_message(self, chat_id: int, text: str, **kwargs) -> None:
         await self.rate_limiter.acquire()
         await self.bot.send_message(chat_id=chat_id, text=text, **kwargs)
 
     @error_handler()
-    async def answer_message(self, message: Message, text: str, **kwargs):
+    async def answer_message(self, message: Message, text: str, **kwargs) -> None:
         await self.rate_limiter.acquire()
         await message.answer(text=text, **kwargs)

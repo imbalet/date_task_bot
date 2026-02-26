@@ -10,7 +10,6 @@ from date_task_bot.schemas import DefaultRemindTiming, Task
 
 
 class CreateTaskUseCase:
-
     def __init__(
         self, task_repo: TaskRepository, user_settings_repo: UserSettingsRepository
     ) -> None:
