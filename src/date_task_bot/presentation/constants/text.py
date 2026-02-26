@@ -110,7 +110,7 @@ _TEXTS: dict[MsgKey, str] = {
     MsgKey.UNEXPECTED_ERROR: "Произошла непредвиденная ошибка.",
     MsgKey.NOT_FOUND_ERROR: "{entity} with {data} not found.",
     MsgKey.ALREADY_EXISTS_ERROR: "{entity} with {data} already exists.",
-    MsgKey.VALIDATION_ERROR: "Validation error for {entity}: {data}.",
+    MsgKey.VALIDATION_ERROR: "Ошибка валидации для {entity}: {data}.",
     MsgKey.TASK: "Задача",
     MsgKey.USER: "Пользователь",
     MsgKey.USER_SETTINGS: "Настройки пользователя",
