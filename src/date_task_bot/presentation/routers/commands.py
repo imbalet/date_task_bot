@@ -37,10 +37,10 @@ class TimeZoneCallback(CallbackData, prefix="tz"):
 async def start(
     message: Message,
     state: FSMContext,
-    chat_id: str,
+    user_id: str,
     register_user_uc: RegisterUserUseCase,
 ):
-    register_user_res = await register_user_uc.execute(data=UserCreate(id=chat_id))
+    register_user_res = await register_user_uc.execute(data=UserCreate(id=user_id))
 
     timezone_text = ""
     if register_user_res.user.settings:
@@ -62,11 +62,11 @@ async def start(
 async def set_timezone(
     message: Message,
     state: FSMContext,
-    chat_id: str,
+    user_id: str,
     kbr_builder: KeyboardBuilder,
     get_tz_uc: GetTimezoneUseCase,
 ):
-    get_user_tz_res = await get_tz_uc.execute(user_id=chat_id)
+    get_user_tz_res = await get_tz_uc.execute(user_id=user_id)
 
     popular_zones = ["Europe/Moscow", "Europe/London", "Asia/Tokyo", "America/New_York"]
     for tz in popular_zones:
@@ -94,7 +94,7 @@ async def set_timezone_callback(
     *,
     callback_data: TimeZoneCallback | None = None,
     state: FSMContext,
-    chat_id: str,
+    user_id: str,
     set_tz_uc: SetTimezoneUseCase,
 ):
     if isinstance(event, CallbackQuery) and callback_data:
@@ -108,7 +108,7 @@ async def set_timezone_callback(
         await state.set_state(TimezoneSelectionState.AWAIT_TZ_NAME)
         text = TEXTS[MsgKey.SEND_YOUR_TIMEZONE]
     else:
-        set_tz_res = await set_tz_uc.execute(user_id=chat_id, tz=tz)
+        set_tz_res = await set_tz_uc.execute(user_id=user_id, tz=tz)
 
         if set_tz_res.success and set_tz_res.current_time:
             text = TimezoneSetMessageFormatter().format(

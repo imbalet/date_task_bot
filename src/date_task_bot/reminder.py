@@ -40,7 +40,7 @@ class Reminder:
             try:
                 formatter = DueReminderFormatter(reminder.timezone)
                 await self.sender.send_message(
-                    chat_id=int(reminder.user_id), text=formatter.format(reminder)
+                    user_id=int(reminder.user_id), text=formatter.format(reminder)
                 )
             except Exception:
                 await self.reminder_repo.set_status(reminder.id, ReminderStatus.FAILED)

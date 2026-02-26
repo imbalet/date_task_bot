@@ -20,7 +20,7 @@ router = Router(name=__name__)
 async def start_adding_task(
     message: Message,
     state: FSMContext,
-    chat_id: str,
+    user_id: str,
     get_tz_uc: GetTimezoneUseCase,
     parse_datetime_uc: ParseDateTimeUseCase,
     create_task_uc: CreateTaskUseCase,
@@ -28,7 +28,7 @@ async def start_adding_task(
 ) -> None:
     text = str(message.text).strip()
 
-    user_tz_data = await get_tz_uc.execute(user_id=chat_id)
+    user_tz_data = await get_tz_uc.execute(user_id=user_id)
 
     parsed_date = parse_datetime_uc.execute(
         user_tz_str=user_tz_data.current_timezone, text=text
@@ -38,7 +38,7 @@ async def start_adding_task(
         text = TEXTS[MsgKey.DATE_OR_TEXT_NOT_FOUND]
     else:
         created_task = await create_task_uc.execute(
-            user_id=chat_id, text=parsed_date.text, due_date=parsed_date.date
+            user_id=user_id, text=parsed_date.text, due_date=parsed_date.date
         )
         task_formatter = TaskFormatter(user_tz=user_tz_data.current_timezone)
         formatted_task = task_formatter.format(created_task)

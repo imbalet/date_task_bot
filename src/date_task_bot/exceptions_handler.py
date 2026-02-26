@@ -25,19 +25,19 @@ ENTITY_TO_MSG_KEY = {
 
 
 def get_chat_info(update: Update) -> tuple[int | None, Bot | None]:
-    chat_id = None
+    user_id = None
     bot = None
-    if update.message:
-        chat_id = update.message.chat.id
+    if update.message and update.message.from_user:
+        user_id = update.message.from_user.id
         bot = update.message.bot
-    elif update.callback_query and update.callback_query.message:
-        chat_id = update.callback_query.message.chat.id
-        bot = update.callback_query.message.bot
-    return chat_id, bot
+    elif update.callback_query and update.callback_query.from_user:
+        user_id = update.callback_query.from_user.id
+        bot = update.callback_query.bot
+    return user_id, bot
 
 
 async def app_exceptions_handler(event: ErrorEvent) -> bool:
-    chat_id, bot = get_chat_info(event.update)
+    user_id, bot = get_chat_info(event.update)
     exception = event.exception
     exception = cast(AppException, exception)
 
@@ -50,29 +50,29 @@ async def app_exceptions_handler(event: ErrorEvent) -> bool:
 
     entity_str = TEXTS[ENTITY_TO_MSG_KEY.get(exception.entity, MsgKey.OTHER_ENTITY)]
 
-    if chat_id and bot:
+    if user_id and bot:
         match exception:
             case NotFoundException():
                 await bot.send_message(
-                    chat_id,
+                    user_id,
                     TEXTS[MsgKey.NOT_FOUND_ERROR].format(
                         entity=entity_str, data=exception._format_data(exception.data)
                     ),
                 )
             case AlreadyExistsException():
                 await bot.send_message(
-                    chat_id,
+                    user_id,
                     TEXTS[MsgKey.ALREADY_EXISTS_ERROR].format(
                         entity=entity_str, data=exception._format_data(exception.data)
                     ),
                 )
             case ValidationException():
                 await bot.send_message(
-                    chat_id,
+                    user_id,
                     TEXTS[MsgKey.VALIDATION_ERROR].format(
                         entity=entity_str, data=exception._format_data(exception.data)
                     ),
                 )
             case _:
-                await bot.send_message(chat_id, TEXTS[MsgKey.UNEXPECTED_ERROR])
+                await bot.send_message(user_id, TEXTS[MsgKey.UNEXPECTED_ERROR])
     return True

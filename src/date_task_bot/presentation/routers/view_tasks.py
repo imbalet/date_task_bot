@@ -37,7 +37,7 @@ async def all_tasks(
     *,
     callback_data: TaskPaginationCallback | None = None,
     state: FSMContext,
-    chat_id: str,
+    user_id: str,
     get_all_tasks_uc: GetAllTasksUseCase,
     get_tz_uc: GetTimezoneUseCase,
     kbr_builder: KeyboardBuilder,
@@ -46,9 +46,9 @@ async def all_tasks(
     if callback_data:
         current_page = callback_data.page
 
-    user_tz_data = await get_tz_uc.execute(user_id=chat_id)
+    user_tz_data = await get_tz_uc.execute(user_id=user_id)
     tasks_with_pagination = await get_all_tasks_uc.execute(
-        TaskPaginationRequest(user_id=chat_id, page=current_page, page_size=6)
+        TaskPaginationRequest(user_id=user_id, page=current_page, page_size=6)
     )
     tasks_formatter = TaskListFormatter(user_tz=user_tz_data.current_timezone)
     formatted_task_list = tasks_formatter.format(tasks_with_pagination)
@@ -94,12 +94,12 @@ async def task_info(
     callback: CallbackQueryWithMessage,
     callback_data: TaskCallback,
     state: FSMContext,
-    chat_id: str,
+    user_id: str,
     get_task_uc: GetTaskUseCase,
     get_tz_uc: GetTimezoneUseCase,
     kbr_builder: KeyboardBuilder,
 ):
-    user_tz_data = await get_tz_uc.execute(user_id=chat_id)
+    user_tz_data = await get_tz_uc.execute(user_id=user_id)
 
     task = await get_task_uc.execute(callback_data.task)
     formatted_task = TaskFormatter(user_tz=user_tz_data.current_timezone).format(task)

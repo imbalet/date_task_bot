@@ -65,9 +65,9 @@ class Sender:
         return error_handler_dec
 
     @error_handler()
-    async def send_message(self, chat_id: int, text: str, **kwargs) -> None:
+    async def send_message(self, user_id: int, text: str, **kwargs) -> None:
         await self.rate_limiter.acquire()
-        await self.bot.send_message(chat_id=chat_id, text=text, **kwargs)
+        await self.bot.send_message(chat_id=user_id, text=text, **kwargs)
 
     @error_handler()
     async def answer_message(self, message: Message, text: str, **kwargs) -> None:

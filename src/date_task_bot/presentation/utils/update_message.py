@@ -52,7 +52,7 @@ async def update_main_message(
                 await message.delete()
             return
         except Exception:
-            logger.warning("error to send message", stacklevel=2)
+            logger.exception("error to send message", stacklevel=2)
             pass
 
     msg = await message.answer(text=text, reply_markup=reply_markup, **kwargs)

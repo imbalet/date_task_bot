@@ -55,21 +55,21 @@ class DIMiddleware(BaseMiddleware):
         data["kbr_builder"] = KeyboardBuilder()
 
         # utils
-        chat_id = None
+        user_id = None
         if isinstance(event, Update):
-            if event.message:
+            if event.message and event.message.from_user:
                 # TODO: change to user id
-                chat_id = event.message.chat.id
-            elif event.callback_query:
-                chat_id = event.callback_query.message.chat.id  # type: ignore
+                user_id = event.message.from_user.id
+            elif event.callback_query and event.callback_query.from_user.id:
+                user_id = event.callback_query.from_user.id
             else:
-                logger.error(f"No chat id found in event {type(event)}")
+                logger.error(f"No user id found in event {type(event)}")
                 return
         else:
             logger.error(f"Unknown event type {type(event)}")
             return
 
-        data["chat_id"] = str(chat_id)
+        data["user_id"] = str(user_id)
 
         # use cases
         data["get_tz_uc"] = GetTimezoneUseCase(user_settings_repo=user_settings_repo)

@@ -37,11 +37,11 @@ async def delete(
     callback: CallbackQueryWithMessage,
     callback_data: TaskActionCallback,
     state: FSMContext,
-    chat_id: str,
+    user_id: str,
     kbr_builder: KeyboardBuilder,
     delete_task_uc: DeleteTaskUseCase,
 ):
-    await delete_task_uc.execute(task_id=callback_data.id, user_id=str(chat_id))
+    await delete_task_uc.execute(task_id=callback_data.id, user_id=str(user_id))
 
     kbr_builder.button(MsgKey.BACK, TaskPaginationCallback(page=1))
 
@@ -107,7 +107,7 @@ async def edit_select_field(
 async def edit_text(
     message: Message,
     state: FSMContext,
-    chat_id: str,
+    user_id: str,
     get_tz_uc: GetTimezoneUseCase,
     edit_task_uc: EditTaskUseCase,
 ):
@@ -131,9 +131,9 @@ async def edit_text(
 
     task_id = UUID(data["task_id"])
     user_input = message.text.strip()
-    user_tz_data = await get_tz_uc.execute(user_id=chat_id)
+    user_tz_data = await get_tz_uc.execute(user_id=user_id)
 
-    new_data = TaskUpdate(text=user_input, id=task_id, user_id=chat_id)
+    new_data = TaskUpdate(text=user_input, id=task_id, user_id=user_id)
     updated_task = await edit_task_uc.execute(data=new_data)
     task_formatter = TaskFormatter(user_tz=user_tz_data.current_timezone)
     formatted_task = task_formatter.format(updated_task)
@@ -152,7 +152,7 @@ async def edit_text(
 async def edit_date(
     message: Message,
     state: FSMContext,
-    chat_id: str,
+    user_id: str,
     get_tz_uc: GetTimezoneUseCase,
     edit_task_uc: EditTaskUseCase,
     parse_datetime_from_text_uc: ParseDatetimeFromTextUseCase,
@@ -177,7 +177,7 @@ async def edit_date(
 
     task_id = UUID(data["task_id"])
     user_input = message.text.strip()
-    user_tz_data = await get_tz_uc.execute(user_id=chat_id)
+    user_tz_data = await get_tz_uc.execute(user_id=user_id)
 
     datetime_object = parse_datetime_from_text_uc.execute(
         datetime_str=user_input, tz=ZoneInfo(user_tz_data.current_timezone)
@@ -185,7 +185,7 @@ async def edit_date(
     if not datetime_object:
         answer_text = TEXTS[MsgKey.DATE_PARSING_ERROR]
     else:
-        new_data = TaskUpdate(due_date=datetime_object, id=task_id, user_id=chat_id)
+        new_data = TaskUpdate(due_date=datetime_object, id=task_id, user_id=user_id)
         updated_task = await edit_task_uc.execute(data=new_data)
         task_formatter = TaskFormatter(user_tz=user_tz_data.current_timezone)
         formatted_task = task_formatter.format(updated_task)
