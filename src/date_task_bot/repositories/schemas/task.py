@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
 
-from date_task_bot.schemas import Reminder, Task
+from date_task_bot.schemas import Reminder, Task, TaskStatus
 
 from .base_schema import AwareDatetime, OptionalAwareDatetime, RepositoryDTO
 from .pagination import PaginationRequest
@@ -32,6 +32,7 @@ class TaskResponse(Task, RepositoryDTO):
 
 class TaskPaginationRequest(PaginationRequest):
     user_id: str
+    status: TaskStatus | None = None
 
 
 class TaskUpdate(BaseModel):

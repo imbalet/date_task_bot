@@ -77,6 +77,10 @@ class TaskRepository(BaseRepository):
                 .limit(pagination_request.limit)
                 .offset(pagination_request.offset)
             )
+            status_filter = TaskOrm.status == pagination_request.status
+            if pagination_request.status is not None:
+                stmt = stmt.where(status_filter)
+
             res = await session.execute(stmt)
             rows = res.all()
 
