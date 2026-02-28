@@ -1,5 +1,6 @@
 from aiogram import Router
 from aiogram.filters import Command
+from aiogram.filters.callback_data import CallbackData
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
@@ -41,7 +42,7 @@ async def all_tasks(
     get_all_tasks_uc: GetAllTasksUseCase,
     get_tz_uc: GetTimezoneUseCase,
     kbr_builder: KeyboardBuilder,
-):
+) -> None:
     current_page = 1
     if callback_data:
         current_page = callback_data.page
@@ -60,7 +61,7 @@ async def all_tasks(
     else:
         text = TEXTS[MsgKey.NO_TASKS]
 
-    extra_buttons = []
+    extra_buttons: list[tuple[MsgKey, CallbackData]] = []
     if current_page > 1:
         extra_buttons.append(
             (MsgKey.PREV, TaskPaginationCallback(page=current_page - 1))
@@ -98,7 +99,7 @@ async def task_info(
     get_task_uc: GetTaskUseCase,
     get_tz_uc: GetTimezoneUseCase,
     kbr_builder: KeyboardBuilder,
-):
+) -> None:
     user_tz_data = await get_tz_uc.execute(user_id=user_id)
 
     task = await get_task_uc.execute(callback_data.task)

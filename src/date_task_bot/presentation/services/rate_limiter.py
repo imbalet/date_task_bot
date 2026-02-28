@@ -1,4 +1,5 @@
 import asyncio
+import math
 import time
 
 
@@ -6,7 +7,7 @@ class RateLimiter:
     def __init__(self, rate: int, per: float) -> None:
         self.rate = rate  # message count
         self.per = per  # send timings in seconds
-        self.tokens = rate
+        self.tokens: float = rate
         self.updated = time.time()
         self.lock = asyncio.Lock()
 
@@ -22,5 +23,7 @@ class RateLimiter:
                 wait = (1 - self.tokens) * (self.per / self.rate)
                 await asyncio.sleep(wait)
                 self.tokens = 0
+
+            self.tokens = math.floor(self.tokens)
 
             self.tokens -= 1

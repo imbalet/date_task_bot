@@ -1,10 +1,10 @@
 from collections.abc import Awaitable, Callable
 from logging import getLogger
-from typing import Any
+from typing import Any, cast
 
 from aiogram import BaseMiddleware, Bot
 from aiogram.types import CallbackQuery, InaccessibleMessage, TelegramObject, Update
-from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from date_task_bot.presentation.utils import KeyboardBuilder
 from date_task_bot.repositories import (
@@ -29,17 +29,17 @@ from date_task_bot.use_cases import (
 logger = getLogger(__name__)
 
 
-class DIMiddleware(BaseMiddleware):
-    def __init__(self, sessionmaker: async_sessionmaker) -> None:
+class DIMiddleware[T](BaseMiddleware):
+    def __init__(self, sessionmaker: async_sessionmaker[AsyncSession]) -> None:
         super().__init__()
         self.sessionmaker = sessionmaker
 
     async def __call__(
         self,
-        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[T]],
         event: TelegramObject,
         data: dict[str, Any],
-    ) -> Any:
+    ) -> T | None:
 
         # DB, repositories
         user_repo = UserRepository(session_factory=self.sessionmaker)
@@ -64,10 +64,10 @@ class DIMiddleware(BaseMiddleware):
                 user_id = event.callback_query.from_user.id
             else:
                 logger.error(f"No user id found in event {type(event)}")
-                return
+                return None
         else:
             logger.error(f"Unknown event type {type(event)}")
-            return
+            return None
 
         data["user_id"] = str(user_id)
 
@@ -90,25 +90,29 @@ class DIMiddleware(BaseMiddleware):
         return await handler(event, data)
 
 
-class CallbackMessageMiddleware(BaseMiddleware):
-    async def __call__(  # type: ignore
+class CallbackMessageMiddleware[T](BaseMiddleware):
+    async def __call__(
         self,
-        handler: Callable[[CallbackQuery, dict[str, Any]], Awaitable[Any]],
-        event: CallbackQuery,
+        handler: Callable[[CallbackQuery, dict[str, Any]], Awaitable[T]],
+        event: TelegramObject,
         data: dict[str, Any],
-    ) -> Any:
+    ) -> T | None:
+        if not isinstance(event, CallbackQuery):
+            return await handler(cast(CallbackQuery, event), data)
+
         if event.message is None:
             await event.answer("Сообщение не найдено", show_alert=True)
-            return
+            return None
 
         if isinstance(event.message, InaccessibleMessage):
-            bot: Bot = data.get("bot")  # type: ignore
+            bot = data.get("bot")
+            bot = cast(Bot, bot)
             if bot:
                 await bot.send_message(
                     chat_id=event.message.chat.id,
                     text="Сообщение недоступно",
                 )
             await event.answer()
-            return
+            return None
 
         return await handler(event, data)

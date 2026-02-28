@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 from logging import getLogger
-from typing import Annotated
+from typing import Annotated, Any, Self
 
 from pydantic import AfterValidator, BaseModel, ConfigDict
 from sqlalchemy import inspect
@@ -23,14 +23,14 @@ OptionalAwareDatetime = Annotated[datetime | None, AfterValidator(ensure_timezon
 
 class RepositoryDTO(BaseModel):
     @classmethod
-    def model_validate(cls, obj, **kwargs):
-        def serialize(obj):
+    def model_validate(cls, obj, **kwargs: Any) -> Self:
+        def serialize(obj) -> dict[str, Any]:
             if not hasattr(obj, "__mapper__"):
                 return obj
 
             insp = inspect(obj)
             data = {}
-            for name in insp.attrs:
+            for name in insp.attrs.keys():  # noqa: SIM118
                 if name in insp.unloaded:
                     continue
                 value = None

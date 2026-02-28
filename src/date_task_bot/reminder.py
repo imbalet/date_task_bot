@@ -29,9 +29,9 @@ class Reminder:
         self.concurrent_sending = concurrent_sending
         self.sender = sender
 
-        self.queue = asyncio.Queue()
-        self.workers = []
-        self.loop = None
+        self.queue: asyncio.Queue[DueReminder] = asyncio.Queue()
+        self.workers: list[asyncio.Task[None]] = []
+        self.loop: asyncio.Task[None] | None = None
 
     async def worker(self) -> None:
         while True:

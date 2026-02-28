@@ -24,7 +24,7 @@ class TaskResponse(Task, RepositoryDTO):
     reminders: list[Reminder] = Field(default_factory=list)
 
     @field_validator("reminders", mode="before")
-    def validate_reminders_as_response(cls, v):
+    def validate_reminders_as_response(cls, v) -> list[Reminder]:
         if not v:
             return []
         return [ReminderResponse.model_validate(item) for item in v]

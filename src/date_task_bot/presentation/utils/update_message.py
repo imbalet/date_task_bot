@@ -20,7 +20,7 @@ async def update_main_message(
     text: str,
     reply_markup: InlineKeyboardMarkup | None = None,
     create_new: bool = False,
-    **kwargs: Any,  # noqa: ANN401
+    **kwargs: Any,
 ) -> None:
     if isinstance(event, InaccessibleMessage):
         bot = event.bot

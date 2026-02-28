@@ -39,7 +39,7 @@ async def start(
     state: FSMContext,
     user_id: str,
     register_user_uc: RegisterUserUseCase,
-):
+) -> None:
     register_user_res = await register_user_uc.execute(data=UserCreate(id=user_id))
 
     timezone_text = ""
@@ -65,7 +65,7 @@ async def set_timezone(
     user_id: str,
     kbr_builder: KeyboardBuilder,
     get_tz_uc: GetTimezoneUseCase,
-):
+) -> None:
     get_user_tz_res = await get_tz_uc.execute(user_id=user_id)
 
     popular_zones = ["Europe/Moscow", "Europe/London", "Asia/Tokyo", "America/New_York"]
@@ -96,7 +96,7 @@ async def set_timezone_callback(
     state: FSMContext,
     user_id: str,
     set_tz_uc: SetTimezoneUseCase,
-):
+) -> None:
     if isinstance(event, CallbackQuery) and callback_data:
         tz = callback_data.tz
     else:

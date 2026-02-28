@@ -1,4 +1,5 @@
 from enum import StrEnum
+from typing import Any
 
 
 class EntityEnum(StrEnum):
@@ -15,7 +16,7 @@ class AppException(Exception):
     def __init__(
         self,
         entity: EntityEnum,
-        data: dict | None = None,
+        data: dict[str, Any] | None = None,
         *,
         message: str | None = None,
     ) -> None:
@@ -31,7 +32,7 @@ class AppException(Exception):
         super().__init__(message)
 
     @staticmethod
-    def _format_data(data: dict) -> str:
+    def _format_data(data: dict[str, Any]) -> str:
         return ", ".join(f"{k}={v}" for k, v in data.items()) or "no data"
 
 

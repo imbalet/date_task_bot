@@ -40,7 +40,7 @@ async def delete(
     user_id: str,
     kbr_builder: KeyboardBuilder,
     delete_task_uc: DeleteTaskUseCase,
-):
+) -> None:
     await delete_task_uc.execute(task_id=callback_data.id, user_id=str(user_id))
 
     kbr_builder.button(MsgKey.BACK, TaskPaginationCallback(page=1))
@@ -59,7 +59,7 @@ async def edit_start(
     callback_data: TaskActionCallback,
     state: FSMContext,
     kbr_builder: KeyboardBuilder,
-):
+) -> None:
 
     kbr_builder.button(
         MsgKey.DUE_DATE_FIELD,
@@ -84,7 +84,7 @@ async def edit_select_field(
     callback: CallbackQueryWithMessage,
     callback_data: TaskUpdateCallback,
     state: FSMContext,
-):
+) -> None:
     await state.update_data(task_id=str(callback_data.id))
 
     # TODO: add mapping
@@ -110,7 +110,7 @@ async def edit_text(
     user_id: str,
     get_tz_uc: GetTimezoneUseCase,
     edit_task_uc: EditTaskUseCase,
-):
+) -> None:
 
     if not message.text or not message.text.strip():
         await update_main_message(
@@ -156,7 +156,7 @@ async def edit_date(
     get_tz_uc: GetTimezoneUseCase,
     edit_task_uc: EditTaskUseCase,
     parse_datetime_from_text_uc: ParseDatetimeFromTextUseCase,
-):
+) -> None:
 
     if not message.text or not message.text.strip():
         await update_main_message(

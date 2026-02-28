@@ -17,13 +17,13 @@ class UserResponse(User, RepositoryDTO):
     settings: UserSettings | None = Field(default=None)
 
     @field_validator("tasks", mode="before")
-    def validate_task(cls, v):
+    def validate_task(cls, v) -> list[Task]:
         if not v:
             return []
         return [TaskResponse.model_validate(item) for item in v]
 
     @field_validator("settings", mode="before")
-    def validate_settings(cls, v):
+    def validate_settings(cls, v) -> UserSettings | None:
         if not v:
             return None
         return UserSettingsResponse.model_validate(v)

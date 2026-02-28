@@ -41,5 +41,5 @@ def get_config() -> Config:
     global _config_instance
 
     if _config_instance is None:
-        _config_instance = Config()  # type: ignore
+        _config_instance = Config()  # pyright: ignore
     return _config_instance

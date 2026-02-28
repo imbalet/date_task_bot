@@ -1,8 +1,18 @@
+from collections.abc import Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import Any, NotRequired, TypedDict
 from zoneinfo import ZoneInfo
 
 from dateparser.search import search_dates
+
+
+class Settings(TypedDict):
+    PREFER_DATES_FROM: NotRequired[str]
+    RELATIVE_BASE: NotRequired[datetime]
+    DEFAULT_LANGUAGES: NotRequired[list[str]]
+    TIMEZONE: NotRequired[str]
+    RETURN_AS_TIMEZONE_AWARE: NotRequired[bool]
 
 
 @dataclass
@@ -44,7 +54,7 @@ class ParseDateTimeUseCase:
 
         is_only_time = self._is_only_time(text=text)
         if is_only_time:
-            settings = {**settings, "PREFER_DATES_FROM": "current_period"}
+            settings: Settings = {**settings, "PREFER_DATES_FROM": "current_period"}
 
         res = self._parse(text=text, settings=settings)
         if not res:
@@ -59,8 +69,10 @@ class ParseDateTimeUseCase:
             date=date.replace(tzinfo=user_tz).astimezone(UTC), text=cleaned_text
         )
 
-    def _parse(self, text: str, settings: dict) -> tuple[str, datetime] | None:
-        dates = search_dates(text, languages=self.languages, settings=settings)
+    def _parse(
+        self, text: str, settings: Mapping[str, Any]
+    ) -> tuple[str, datetime] | None:
+        dates = search_dates(text, languages=self.languages, settings=settings)  # type: ignore
         if not dates:
             return None
 
@@ -99,7 +111,7 @@ class ParseDateTimeUseCase:
 
         return bool(dt1.date() == base1.date() and dt2.date() == base2.date())
 
-    def _build_settings(self, relative_base: datetime) -> dict:
+    def _build_settings(self, relative_base: datetime) -> Settings:
         return {
             "PREFER_DATES_FROM": "future",
             "RELATIVE_BASE": relative_base,
