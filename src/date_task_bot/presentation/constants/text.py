@@ -73,6 +73,10 @@ class MsgKey(StrEnum):
 
     UPDATED_TASK = "updated_task"
 
+    # task statuses
+    SHOW_PENDING = "show_pending"
+    SHOW_ALL = "show_all"
+
 
 _TEXTS: dict[MsgKey, str] = {
     # pagination
@@ -124,6 +128,8 @@ _TEXTS: dict[MsgKey, str] = {
     MsgKey.UPDATED_TASK: "Задача была обновлена",
     MsgKey.DUE_DATE_FIELD: "Дата выполнения",
     MsgKey.TEXT_FIELD: "Текст",
+    MsgKey.SHOW_PENDING: "Показать ожидаемые",
+    MsgKey.SHOW_ALL: "Показать все",
 }
 
 

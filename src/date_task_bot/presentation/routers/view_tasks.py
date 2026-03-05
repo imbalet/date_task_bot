@@ -22,6 +22,7 @@ from date_task_bot.presentation.utils import (
     update_main_message,
 )
 from date_task_bot.repositories.schemas import TaskPaginationRequest
+from date_task_bot.schemas import TaskStatus
 from date_task_bot.use_cases import (
     GetAllTasksUseCase,
     GetTaskUseCase,
@@ -32,7 +33,7 @@ router = Router(name=__name__)
 
 
 @router.callback_query(TaskPaginationCallback.filter())
-@router.message(Command("tasks"))
+@router.message(Command("tasks", "tasks_all"))
 async def all_tasks(
     event: Message | CallbackQueryWithMessage,
     *,
@@ -43,13 +44,18 @@ async def all_tasks(
     get_tz_uc: GetTimezoneUseCase,
     kbr_builder: KeyboardBuilder,
 ) -> None:
-    current_page = 1
-    if callback_data:
+    if isinstance(event, Message):
+        status = TaskStatus.PENDING if event.text == "/tasks" else None
+        current_page = 1
+    elif callback_data:
+        status = callback_data.status
         current_page = callback_data.page
 
     user_tz_data = await get_tz_uc.execute(user_id=user_id)
     tasks_with_pagination = await get_all_tasks_uc.execute(
-        TaskPaginationRequest(user_id=user_id, page=current_page, page_size=6)
+        TaskPaginationRequest(
+            user_id=user_id, page=current_page, page_size=6, status=status
+        )
     )
     tasks_formatter = TaskListFormatter(user_tz=user_tz_data.current_timezone)
     formatted_task_list = tasks_formatter.format(tasks_with_pagination)
@@ -64,22 +70,33 @@ async def all_tasks(
     extra_buttons: list[tuple[MsgKey, CallbackData]] = []
     if current_page > 1:
         extra_buttons.append(
-            (MsgKey.PREV, TaskPaginationCallback(page=current_page - 1))
+            (MsgKey.PREV, TaskPaginationCallback(page=current_page - 1, status=status))
         )
     if current_page < tasks_with_pagination.total_pages:
         extra_buttons.append(
-            (MsgKey.NEXT, TaskPaginationCallback(page=current_page + 1))
+            (MsgKey.NEXT, TaskPaginationCallback(page=current_page + 1, status=status))
         )
 
     kbr_builder.conf(row_width=2, extra_buttons=extra_buttons)
     kbr_builder.buttons_text_tuple(
         *[
-            (str(idx), TaskCallback(task=el.id, page=current_page))
+            (str(idx), TaskCallback(task=el.id, page=current_page, status=status))
             for idx, el in enumerate(
                 tasks_with_pagination.items, start=tasks_with_pagination.offset + 1
             )
-        ]
+        ],
     )
+    if status == TaskStatus.PENDING:
+        kbr_builder.row_buttons_tuple(
+            (MsgKey.SHOW_ALL, TaskPaginationCallback(page=1, status=None)),
+        )
+    else:
+        kbr_builder.row_buttons_tuple(
+            (
+                MsgKey.SHOW_PENDING,
+                TaskPaginationCallback(page=1, status=TaskStatus.PENDING),
+            ),
+        )
 
     await update_main_message(
         state=state,
@@ -112,7 +129,12 @@ async def task_info(
             TaskActionCallback(act=TaskAction.MARK_AS_DONE, id=task.id),
         ),
         (MsgKey.DELETE, TaskActionCallback(act=TaskAction.DELETE, id=task.id)),
-        (MsgKey.BACK, TaskPaginationCallback(page=callback_data.page)),
+        (
+            MsgKey.BACK,
+            TaskPaginationCallback(
+                page=callback_data.page, status=callback_data.status
+            ),
+        ),
     )
 
     await update_main_message(

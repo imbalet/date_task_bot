@@ -3,6 +3,8 @@ from uuid import UUID
 
 from aiogram.filters.callback_data import CallbackData
 
+from date_task_bot.schemas import TaskStatus
+
 
 class BackCallback(CallbackData, prefix="back"):
     pass
@@ -19,10 +21,12 @@ class ConfirmCallback(CallbackData, prefix="confirm"):
 class TaskCallback(CallbackData, prefix="task"):
     task: UUID
     page: int
+    status: TaskStatus | None = None
 
 
 class TaskPaginationCallback(CallbackData, prefix="task_c"):
     page: int
+    status: TaskStatus | None = None
 
 
 class TaskAction(StrEnum):
