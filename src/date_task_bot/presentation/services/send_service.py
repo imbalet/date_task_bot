@@ -10,7 +10,7 @@ from aiogram.exceptions import (
     TelegramForbiddenError,
     TelegramRetryAfter,
 )
-from aiogram.types import Message
+from aiogram.types import InlineKeyboardMarkup, Message
 
 from .rate_limiter import RateLimiter
 
@@ -65,11 +65,25 @@ class Sender:
         return error_handler_dec
 
     @error_handler()
-    async def send_message(self, user_id: int, text: str, **kwargs) -> None:
+    async def send_message(
+        self,
+        user_id: int,
+        text: str,
+        reply_markup: InlineKeyboardMarkup | None = None,
+        **kwargs,
+    ) -> None:
         await self.rate_limiter.acquire()
-        await self.bot.send_message(chat_id=user_id, text=text, **kwargs)
+        await self.bot.send_message(
+            chat_id=user_id, text=text, reply_markup=reply_markup, **kwargs
+        )
 
     @error_handler()
-    async def answer_message(self, message: Message, text: str, **kwargs) -> None:
+    async def answer_message(
+        self,
+        message: Message,
+        text: str,
+        reply_markup: InlineKeyboardMarkup | None = None,
+        **kwargs,
+    ) -> None:
         await self.rate_limiter.acquire()
-        await message.answer(text=text, **kwargs)
+        await message.answer(text=text, reply_markup=reply_markup, **kwargs)

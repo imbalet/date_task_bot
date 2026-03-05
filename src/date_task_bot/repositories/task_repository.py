@@ -107,7 +107,9 @@ class TaskRepository(BaseRepository):
             stmt = (
                 update(TaskOrm)
                 .values(
-                    **data.model_dump(include={"text", "due_date"}, exclude_unset=True),
+                    **data.model_dump(
+                        include={"text", "due_date", "status"}, exclude_unset=True
+                    ),
                     edited_at=datetime.now(UTC),
                 )
                 .where(TaskOrm.id == data.id)

@@ -1,8 +1,10 @@
+from .change_status import ChangeTaskStatusUseCase
 from .create_task import CreateTaskUseCase
 from .delete_task import DeleteTaskUseCase
 from .edit_task import EditTaskUseCase
 from .get_all_tasks import GetAllTasksUseCase
 from .get_task import GetTaskUseCase
+from .mark_as_done import MarkAsDoneUseCase
 from .parse_datetime import ParseDateTimeUseCase
 from .parse_datetime_from_text import ParseDatetimeFromTextUseCase
 from .register_user import RegisterUserUseCase
@@ -19,4 +21,6 @@ __all__ = [
     "GetTaskUseCase",
     "DeleteTaskUseCase",
     "EditTaskUseCase",
+    "ChangeTaskStatusUseCase",
+    "MarkAsDoneUseCase",
 ]

@@ -4,8 +4,16 @@ from logging import getLogger
 
 from aiogram import Bot
 
+from date_task_bot.presentation.callbacks import (
+    TaskAction,
+    TaskActionCallback,
+    TaskCallback,
+    TaskPaginationCallback,
+)
+from date_task_bot.presentation.constants import MsgKey
 from date_task_bot.presentation.formatters.models import DueReminderFormatter
 from date_task_bot.presentation.services import Sender
+from date_task_bot.presentation.utils import KeyboardBuilder
 from date_task_bot.repositories import ReminderRepository
 from date_task_bot.repositories.schemas import DueReminder
 from date_task_bot.schemas import ReminderStatus
@@ -36,11 +44,17 @@ class Reminder:
     async def worker(self) -> None:
         while True:
             reminder: DueReminder = await self.queue.get()
-
+            kbr_builder = KeyboardBuilder()
+            kbr_builder.button(
+                MsgKey.MARK_AS_DONE,
+                TaskActionCallback(act=TaskAction.MARK_AS_DONE, id=reminder.task_id),
+            )
             try:
                 formatter = DueReminderFormatter(reminder.timezone)
                 await self.sender.send_message(
-                    user_id=int(reminder.user_id), text=formatter.format(reminder)
+                    user_id=int(reminder.user_id),
+                    text=formatter.format(reminder),
+                    reply_markup=kbr_builder.as_markup(),
                 )
             except Exception:
                 await self.reminder_repo.set_status(reminder.id, ReminderStatus.FAILED)

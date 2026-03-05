@@ -83,6 +83,7 @@ class ReminderRepository(BaseRepository):
                 select_stmt = (
                     select(
                         ReminderOrm.id.label("id"),
+                        ReminderOrm.task_id.label("task_id"),
                         ReminderOrm.remind_at.label("remind_at"),
                         ReminderOrm.offset_seconds.label("offset_seconds"),
                         TaskOrm.user_id.label("user_id"),

@@ -40,3 +40,4 @@ class TaskUpdate(BaseModel):
     user_id: str
     text: str | None = None
     due_date: datetime | None = None
+    status: TaskStatus | None = None

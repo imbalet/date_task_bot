@@ -47,6 +47,7 @@ class MsgKey(StrEnum):
 
     # for tasks actions, results, etc
     TASK_DELETED = "task_deleted"
+    MARKED_AS_DONE = "status_changed"
     CHOOSE_FIELD_TO_UPDATE = "choose_field"
 
     # exceptions
@@ -111,6 +112,7 @@ _TEXTS: dict[MsgKey, str] = {
     MsgKey.NO_TIMEZONE: "Такого часового пояса нет. Попробуйте выбрать из списка популярных или напишите корректно.",
     MsgKey.OTHER_TZ: "Другой",
     MsgKey.TASK_DELETED: "Задача была удалена",
+    MsgKey.MARKED_AS_DONE: "Задача помечена как выполненная",
     MsgKey.CHOOSE_FIELD_TO_UPDATE: "Выберете поле для изменения",
     MsgKey.UNEXPECTED_ERROR: "Произошла непредвиденная ошибка.",
     MsgKey.NOT_FOUND_ERROR: "{entity} with {data} not found.",

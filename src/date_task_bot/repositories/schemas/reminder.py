@@ -18,6 +18,7 @@ class ReminderResponse(Reminder, RepositoryDTO):
 
 class DueReminder(RepositoryDTO):
     id: UUID
+    task_id: UUID
     remind_at: AwareDatetime
     offset_seconds: timedelta
     user_id: str

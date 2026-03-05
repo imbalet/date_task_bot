@@ -122,12 +122,8 @@ async def task_info(
     task = await get_task_uc.execute(callback_data.task)
     formatted_task = TaskFormatter(user_tz=user_tz_data.current_timezone).format(task)
 
-    kbr_builder.buttons_tuple(
+    buttons = [
         (MsgKey.EDIT, TaskActionCallback(act=TaskAction.EDIT, id=task.id)),
-        (
-            MsgKey.MARK_AS_DONE,
-            TaskActionCallback(act=TaskAction.MARK_AS_DONE, id=task.id),
-        ),
         (MsgKey.DELETE, TaskActionCallback(act=TaskAction.DELETE, id=task.id)),
         (
             MsgKey.BACK,
@@ -135,7 +131,17 @@ async def task_info(
                 page=callback_data.page, status=callback_data.status
             ),
         ),
-    )
+    ]
+    if task.status != TaskStatus.DONE:
+        buttons.insert(
+            1,
+            (
+                MsgKey.MARK_AS_DONE,
+                TaskActionCallback(act=TaskAction.MARK_AS_DONE, id=task.id),
+            ),
+        )
+
+    kbr_builder.buttons_tuple(*buttons)
 
     await update_main_message(
         state=state,

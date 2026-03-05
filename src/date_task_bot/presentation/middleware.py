@@ -14,12 +14,14 @@ from date_task_bot.repositories import (
     UserSettingsRepository,
 )
 from date_task_bot.use_cases import (
+    ChangeTaskStatusUseCase,
     CreateTaskUseCase,
     DeleteTaskUseCase,
     EditTaskUseCase,
     GetAllTasksUseCase,
     GetTaskUseCase,
     GetTimezoneUseCase,
+    MarkAsDoneUseCase,
     ParseDatetimeFromTextUseCase,
     ParseDateTimeUseCase,
     RegisterUserUseCase,
@@ -84,6 +86,10 @@ class DIMiddleware[T](BaseMiddleware):
         data["get_task_uc"] = GetTaskUseCase(task_repo=task_repo)
         data["delete_task_uc"] = DeleteTaskUseCase(task_repo=task_repo)
         data["edit_task_uc"] = EditTaskUseCase(
+            task_repo=task_repo, reminder_repo=reminder_repo
+        )
+        data["change_status_uc"] = ChangeTaskStatusUseCase(task_repo=task_repo)
+        data["mark_as_done_uc"] = MarkAsDoneUseCase(
             task_repo=task_repo, reminder_repo=reminder_repo
         )
 

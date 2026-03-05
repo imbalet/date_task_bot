@@ -26,6 +26,7 @@ from date_task_bot.use_cases import (
     DeleteTaskUseCase,
     EditTaskUseCase,
     GetTimezoneUseCase,
+    MarkAsDoneUseCase,
     ParseDatetimeFromTextUseCase,
 )
 
@@ -49,6 +50,27 @@ async def delete(
         state=state,
         event=callback,
         text=TEXTS[MsgKey.TASK_DELETED],
+        reply_markup=kbr_builder.as_markup(),
+    )
+
+
+@router.callback_query(TaskActionCallback.filter(F.act == TaskAction.MARK_AS_DONE))
+async def mark_as_done(
+    callback: CallbackQueryWithMessage,
+    callback_data: TaskActionCallback,
+    state: FSMContext,
+    user_id: str,
+    kbr_builder: KeyboardBuilder,
+    mark_as_done_uc: MarkAsDoneUseCase,
+) -> None:
+    await mark_as_done_uc.execute(task_id=callback_data.id, user_id=str(user_id))
+
+    kbr_builder.button(MsgKey.BACK, TaskPaginationCallback(page=1))
+
+    await update_main_message(
+        state=state,
+        event=callback,
+        text=TEXTS[MsgKey.MARKED_AS_DONE],
         reply_markup=kbr_builder.as_markup(),
     )
 
