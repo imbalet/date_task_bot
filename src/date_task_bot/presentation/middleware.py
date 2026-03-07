@@ -1,4 +1,5 @@
 from collections.abc import Awaitable, Callable
+from functools import partial
 from logging import getLogger
 from typing import Any, cast
 
@@ -6,7 +7,8 @@ from aiogram import BaseMiddleware, Bot
 from aiogram.types import CallbackQuery, InaccessibleMessage, TelegramObject, Update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from date_task_bot.presentation.utils import KeyboardBuilder
+from date_task_bot.presentation.services import Sender
+from date_task_bot.presentation.utils import KeyboardBuilder, update_main_message
 from date_task_bot.repositories import (
     ReminderRepository,
     TaskRepository,
@@ -32,9 +34,12 @@ logger = getLogger(__name__)
 
 
 class DIMiddleware[T](BaseMiddleware):
-    def __init__(self, sessionmaker: async_sessionmaker[AsyncSession]) -> None:
+    def __init__(
+        self, sessionmaker: async_sessionmaker[AsyncSession], sender: Sender
+    ) -> None:
         super().__init__()
         self.sessionmaker = sessionmaker
+        self.sender = sender
 
     async def __call__(
         self,
@@ -72,6 +77,8 @@ class DIMiddleware[T](BaseMiddleware):
             return None
 
         data["user_id"] = str(user_id)
+
+        data["update_main_message"] = partial(update_main_message, sender=self.sender)
 
         # use cases
         data["get_tz_uc"] = GetTimezoneUseCase(user_settings_repo=user_settings_repo)

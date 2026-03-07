@@ -71,9 +71,9 @@ class Sender:
         text: str,
         reply_markup: InlineKeyboardMarkup | None = None,
         **kwargs,
-    ) -> None:
+    ) -> Message:
         await self.rate_limiter.acquire()
-        await self.bot.send_message(
+        return await self.bot.send_message(
             chat_id=user_id, text=text, reply_markup=reply_markup, **kwargs
         )
 
@@ -84,6 +84,24 @@ class Sender:
         text: str,
         reply_markup: InlineKeyboardMarkup | None = None,
         **kwargs,
+    ) -> Message:
+        await self.rate_limiter.acquire()
+        return await message.answer(text=text, reply_markup=reply_markup, **kwargs)
+
+    @error_handler()
+    async def edit_message(
+        self,
+        chat_id: int,
+        message_id: int,
+        text: str,
+        reply_markup: InlineKeyboardMarkup | None = None,
+        **kwargs,
     ) -> None:
         await self.rate_limiter.acquire()
-        await message.answer(text=text, reply_markup=reply_markup, **kwargs)
+        await self.bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=text,
+            reply_markup=reply_markup,
+            **kwargs,
+        )

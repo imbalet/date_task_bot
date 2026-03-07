@@ -61,9 +61,9 @@ async def main() -> None:
     engine, sessionmaker = await get_sessionmaker()
     await create_tables(engine)
 
-    dp.update.middleware(DIMiddleware(sessionmaker))
-
     sender = Sender(bot=bot)
+    dp.update.middleware(DIMiddleware(sessionmaker, sender=sender))
+
     reminder_repo = ReminderRepository(sessionmaker)
     reminder = Reminder(bot=bot, sender=sender, reminder_repo=reminder_repo)
     await reminder.start()

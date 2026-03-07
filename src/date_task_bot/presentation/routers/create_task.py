@@ -6,7 +6,7 @@ from date_task_bot.presentation.callbacks import TaskAction, TaskActionCallback
 from date_task_bot.presentation.constants import TEXTS, MsgKey
 from date_task_bot.presentation.formatters.messages import CreatedTaskMessageFormatter
 from date_task_bot.presentation.formatters.models import TaskFormatter
-from date_task_bot.presentation.utils import KeyboardBuilder, update_main_message
+from date_task_bot.presentation.utils import KeyboardBuilder, UpdateMainMessage
 from date_task_bot.use_cases import (
     CreateTaskUseCase,
     GetTimezoneUseCase,
@@ -25,6 +25,7 @@ async def start_adding_task(
     parse_datetime_uc: ParseDateTimeUseCase,
     create_task_uc: CreateTaskUseCase,
     kbr_builder: KeyboardBuilder,
+    update_main_message: UpdateMainMessage,
 ) -> None:
     text = str(message.text).strip()
 

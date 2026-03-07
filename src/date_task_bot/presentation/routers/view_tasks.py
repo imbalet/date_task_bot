@@ -19,7 +19,7 @@ from date_task_bot.presentation.formatters.models import (
 from date_task_bot.presentation.utils import (
     CallbackQueryWithMessage,
     KeyboardBuilder,
-    update_main_message,
+    UpdateMainMessage,
 )
 from date_task_bot.repositories.schemas import TaskPaginationRequest
 from date_task_bot.schemas import TaskStatus
@@ -43,6 +43,7 @@ async def all_tasks(
     get_all_tasks_uc: GetAllTasksUseCase,
     get_tz_uc: GetTimezoneUseCase,
     kbr_builder: KeyboardBuilder,
+    update_main_message: UpdateMainMessage,
 ) -> None:
     if isinstance(event, Message):
         status = TaskStatus.PENDING if event.text == "/tasks" else None
@@ -116,6 +117,7 @@ async def task_info(
     get_task_uc: GetTaskUseCase,
     get_tz_uc: GetTimezoneUseCase,
     kbr_builder: KeyboardBuilder,
+    update_main_message: UpdateMainMessage,
 ) -> None:
     user_tz_data = await get_tz_uc.execute(user_id=user_id)
 

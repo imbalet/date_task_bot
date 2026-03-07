@@ -4,12 +4,7 @@ from logging import getLogger
 
 from aiogram import Bot
 
-from date_task_bot.presentation.callbacks import (
-    TaskAction,
-    TaskActionCallback,
-    TaskCallback,
-    TaskPaginationCallback,
-)
+from date_task_bot.presentation.callbacks import TaskAction, TaskActionCallback
 from date_task_bot.presentation.constants import MsgKey
 from date_task_bot.presentation.formatters.models import DueReminderFormatter
 from date_task_bot.presentation.services import Sender

@@ -17,7 +17,7 @@ from date_task_bot.presentation.states import TimezoneSelectionState
 from date_task_bot.presentation.utils import (
     CallbackQueryWithMessage,
     KeyboardBuilder,
-    update_main_message,
+    UpdateMainMessage,
 )
 from date_task_bot.repositories.schemas import UserCreate
 from date_task_bot.use_cases import (
@@ -39,6 +39,7 @@ async def start(
     state: FSMContext,
     user_id: str,
     register_user_uc: RegisterUserUseCase,
+    update_main_message: UpdateMainMessage,
 ) -> None:
     register_user_res = await register_user_uc.execute(data=UserCreate(id=user_id))
 
@@ -65,6 +66,7 @@ async def set_timezone(
     user_id: str,
     kbr_builder: KeyboardBuilder,
     get_tz_uc: GetTimezoneUseCase,
+    update_main_message: UpdateMainMessage,
 ) -> None:
     get_user_tz_res = await get_tz_uc.execute(user_id=user_id)
 
@@ -96,6 +98,7 @@ async def set_timezone_callback(
     state: FSMContext,
     user_id: str,
     set_tz_uc: SetTimezoneUseCase,
+    update_main_message: UpdateMainMessage,
 ) -> None:
     if isinstance(event, CallbackQuery) and callback_data:
         tz = callback_data.tz
