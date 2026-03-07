@@ -8,14 +8,14 @@ from .change_status import ChangeTaskStatusUseCase
 
 class MarkAsDoneUseCase:
     def __init__(
-        self, task_repo: TaskRepository, reminder_repo: ReminderRepository
+        self, *, task_repo: TaskRepository, reminder_repo: ReminderRepository
     ) -> None:
         self.task_repo = task_repo
         self.reminder_repo = reminder_repo
 
         self.change_status_uc = ChangeTaskStatusUseCase(task_repo=task_repo)
 
-    async def execute(self, task_id: UUID, user_id: str) -> None:
+    async def execute(self, *, task_id: UUID, user_id: str) -> None:
         await self.change_status_uc.execute(
             task_id=task_id, user_id=user_id, status=TaskStatus.DONE
         )

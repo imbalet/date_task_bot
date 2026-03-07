@@ -35,7 +35,7 @@ class ParseDateTimeUseCase:
         self.languages = ["ru"]
 
     def execute(
-        self, user_tz_str: str, text: str, now: datetime | None = None
+        self, *, user_tz_str: str, text: str, now: datetime | None = None
     ) -> ParseDateTimeUseCaseResult:
         """Parses datetime from text.
 
@@ -50,11 +50,14 @@ class ParseDateTimeUseCase:
         """
         user_tz = ZoneInfo(user_tz_str)
         base_datetime = now or datetime.now(user_tz).replace(tzinfo=None)
-        settings = self._build_settings(relative_base=base_datetime)
+        base_settings = self._build_settings(relative_base=base_datetime)
 
         is_only_time = self._is_only_time(text=text)
         if is_only_time:
-            settings: Settings = {**settings, "PREFER_DATES_FROM": "current_period"}
+            settings: Settings = {
+                **base_settings,
+                "PREFER_DATES_FROM": "current_period",
+            }
 
         res = self._parse(text=text, settings=settings)
         if not res:
@@ -70,7 +73,7 @@ class ParseDateTimeUseCase:
         )
 
     def _parse(
-        self, text: str, settings: Mapping[str, Any]
+        self, *, text: str, settings: Mapping[str, Any]
     ) -> tuple[str, datetime] | None:
         dates = search_dates(text, languages=self.languages, settings=settings)  # type: ignore
         if not dates:
@@ -101,8 +104,12 @@ class ParseDateTimeUseCase:
         base1 = datetime(2020, 1, 15, 0, 0)
         base2 = datetime(2021, 6, 20, 0, 0)
 
-        res1 = self._parse(text, settings={**sandbox_settings, "RELATIVE_BASE": base1})
-        res2 = self._parse(text, settings={**sandbox_settings, "RELATIVE_BASE": base2})
+        res1 = self._parse(
+            text=text, settings={**sandbox_settings, "RELATIVE_BASE": base1}
+        )
+        res2 = self._parse(
+            text=text, settings={**sandbox_settings, "RELATIVE_BASE": base2}
+        )
         if not res1 or not res2:
             return False
 
@@ -111,7 +118,7 @@ class ParseDateTimeUseCase:
 
         return bool(dt1.date() == base1.date() and dt2.date() == base2.date())
 
-    def _build_settings(self, relative_base: datetime) -> Settings:
+    def _build_settings(self, *, relative_base: datetime) -> Settings:
         return {
             "PREFER_DATES_FROM": "future",
             "RELATIVE_BASE": relative_base,

@@ -52,7 +52,9 @@ class Reminder:
                     reply_markup=kbr_builder.as_markup(),
                 )
             except Exception:
-                await self.reminder_repo.set_status(reminder.id, ReminderStatus.FAILED)
+                await self.reminder_repo.set_status(
+                    id=reminder.id, status=ReminderStatus.FAILED
+                )
                 logger.warning(
                     "Error on sending reminder for task with id %s.",
                     reminder.id,
@@ -60,7 +62,9 @@ class Reminder:
                 )
                 pass
             else:
-                await self.reminder_repo.set_status(reminder.id, ReminderStatus.SENT)
+                await self.reminder_repo.set_status(
+                    id=reminder.id, status=ReminderStatus.SENT
+                )
 
             self.queue.task_done()
 

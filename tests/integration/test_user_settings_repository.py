@@ -1,6 +1,5 @@
-import pytest
+from uuid import uuid4
 
-from date_task_bot.exceptions import NotFoundException
 from date_task_bot.models import UserSettingsOrm
 from date_task_bot.repositories import UserSettingsRepository
 from date_task_bot.repositories.schemas import (
@@ -24,8 +23,8 @@ async def test_get_by_user_id(
 async def test_get_by_user_id_empty(
     user_settings_repo: UserSettingsRepository,
 ):
-    with pytest.raises(NotFoundException):
-        await user_settings_repo.get_by_user_id(user_id="123")
+    res = await user_settings_repo.get_by_user_id(user_id="123")
+    assert res is None
 
 
 async def test_update(
@@ -33,10 +32,15 @@ async def test_update(
     user_in_db: UserResponse,
     user_settings_repo: UserSettingsRepository,
 ):
+    settings = await user_settings_repo.get_by_user_id(user_id=user_in_db.id)
+    assert settings
+    settings_id = settings.id
+
     new_tz = "Europe/Moscow"
     settings = await user_settings_repo.update(
-        user_id=user_in_db.id, data=UserSettingsUpdate(timezone=new_tz)
+        data=UserSettingsUpdate(id=settings_id, timezone=new_tz)
     )
+    assert settings
 
     from_db = await get_from_db_by_pk(
         async_session_factory, UserSettingsOrm, settings.id
@@ -48,7 +52,7 @@ async def test_update(
 
 async def test_update_empty(user_settings_repo: UserSettingsRepository):
     new_tz = "Europe/Moscow"
-    with pytest.raises(NotFoundException):
-        await user_settings_repo.update(
-            user_id="123", data=UserSettingsUpdate(timezone=new_tz)
-        )
+    res = await user_settings_repo.update(
+        data=UserSettingsUpdate(id=uuid4(), timezone=new_tz)
+    )
+    assert res is None

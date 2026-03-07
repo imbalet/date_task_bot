@@ -161,8 +161,8 @@ async def edit_text(
     user_input = message.text.strip()
     user_tz_data = await get_tz_uc.execute(user_id=user_id)
 
-    new_data = TaskUpdate(text=user_input, id=task_id, user_id=user_id)
-    updated_task = await edit_task_uc.execute(data=new_data)
+    new_data = TaskUpdate(text=user_input, id=task_id)
+    updated_task = await edit_task_uc.execute(user_id=user_id, data=new_data)
     task_formatter = TaskFormatter(user_tz=user_tz_data.current_timezone)
     formatted_task = task_formatter.format(updated_task)
 
@@ -219,8 +219,8 @@ async def edit_date(
     if not datetime_object:
         answer_text = TEXTS[MsgKey.DATE_PARSING_ERROR]
     else:
-        new_data = TaskUpdate(due_date=datetime_object, id=task_id, user_id=user_id)
-        updated_task = await edit_task_uc.execute(data=new_data)
+        new_data = TaskUpdate(due_date=datetime_object, id=task_id)
+        updated_task = await edit_task_uc.execute(user_id=user_id, data=new_data)
         task_formatter = TaskFormatter(user_tz=user_tz_data.current_timezone)
         formatted_task = task_formatter.format(updated_task)
 

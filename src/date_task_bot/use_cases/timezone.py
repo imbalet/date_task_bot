@@ -15,20 +15,28 @@ class SetTimezoneUseCaseResult:
 
 
 class SetTimezoneUseCase:
-    def __init__(self, user_settings_repo: UserSettingsRepository) -> None:
+    def __init__(self, *, user_settings_repo: UserSettingsRepository) -> None:
         self.user_settings_repo = user_settings_repo
 
-    async def execute(self, user_id: str, tz: str) -> SetTimezoneUseCaseResult:
+    async def execute(self, *, user_id: str, tz: str) -> SetTimezoneUseCaseResult:
         if tz not in available_timezones():
             return SetTimezoneUseCaseResult(success=False)
-        else:
-            res = await self.user_settings_repo.update(
-                user_id=user_id, data=UserSettingsUpdate(timezone=tz)
+
+        settings = await self.user_settings_repo.get_by_user_id(user_id=user_id)
+        if not settings or settings.user_id != user_id:
+            raise NotFoundException(
+                entity=EntityEnum.SETTINGS, data={"user_id": user_id}
             )
-            now = datetime.now(ZoneInfo(tz))
-            return SetTimezoneUseCaseResult(
-                current_time=now, current_timezone=res.timezone
+
+        res = await self.user_settings_repo.update(
+            data=UserSettingsUpdate(id=settings.id, timezone=tz)
+        )
+        if not res:
+            raise NotFoundException(
+                entity=EntityEnum.SETTINGS, data={"user_id": user_id}
             )
+        now = datetime.now(ZoneInfo(tz))
+        return SetTimezoneUseCaseResult(current_time=now, current_timezone=res.timezone)
 
 
 @dataclass
@@ -38,10 +46,10 @@ class GetTimezoneUseCaseResult:
 
 
 class GetTimezoneUseCase:
-    def __init__(self, user_settings_repo: UserSettingsRepository) -> None:
+    def __init__(self, *, user_settings_repo: UserSettingsRepository) -> None:
         self.user_settings_repo = user_settings_repo
 
-    async def execute(self, user_id: str) -> GetTimezoneUseCaseResult:
+    async def execute(self, *, user_id: str) -> GetTimezoneUseCaseResult:
         user = await self.user_settings_repo.get_by_user_id(user_id=user_id)
         if not user:
             raise NotFoundException(entity=EntityEnum.USER, data={"id": user_id})

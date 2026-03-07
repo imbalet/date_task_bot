@@ -109,11 +109,11 @@ async def test_creating_task(
         due_date=task_due_date,
     )
 
-    used_reminders = task_repo_mock.create.call_args[0][0].reminders
+    used_reminders = task_repo_mock.create.call_args.kwargs["task"].reminders
 
     assert res == task_response_schema
 
-    used_reminders = task_repo_mock.create.call_args[0][0].reminders
+    used_reminders = task_repo_mock.create.call_args.kwargs["task"].reminders
     for r in used_reminders:
         assert now < r.remind_at <= task_due_date
 

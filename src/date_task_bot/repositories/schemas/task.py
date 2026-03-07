@@ -37,7 +37,6 @@ class TaskPaginationRequest(PaginationRequest):
 
 class TaskUpdate(BaseModel):
     id: UUID
-    user_id: str
     text: str | None = None
     due_date: datetime | None = None
     status: TaskStatus | None = None

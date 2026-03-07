@@ -14,7 +14,7 @@ logger = getLogger(__name__)
 
 
 class UserRepository(BaseRepository):
-    async def create(self, user: UserCreate) -> User:
+    async def create(self, *, user: UserCreate) -> User:
         async with self.session_factory() as session:
             try:
                 new = UserOrm(id=user.id)
@@ -31,6 +31,7 @@ class UserRepository(BaseRepository):
 
     async def get(
         self,
+        *,
         id: str,
         load_tasks: bool = False,
         load_reminders: bool = False,

@@ -72,13 +72,17 @@ def test_update_reminders_skips_all_past(edit_task_uc: EditTaskUseCase):
         for offset in reminders_offsets
     ]
 
-    updated_reminders = edit_task_uc.update_reminders(reminders, new_due_date)
+    updated_reminders = edit_task_uc.update_reminders(
+        reminders=reminders, new_due_date=new_due_date
+    )
 
     assert updated_reminders == []
 
 
 def test_update_reminders_empty_list(edit_task_uc: EditTaskUseCase):
-    updated_reminders = edit_task_uc.update_reminders([], datetime.now(UTC))
+    updated_reminders = edit_task_uc.update_reminders(
+        reminders=[], new_due_date=datetime.now(UTC)
+    )
     assert updated_reminders == []
 
 
@@ -91,7 +95,9 @@ def test_update_reminders_mixed(edit_task_uc: EditTaskUseCase):
         make_reminder(offset_seconds=timedelta(hours=-1)),
     ]
 
-    updated_reminders = edit_task_uc.update_reminders(reminders, new_due_date)
+    updated_reminders = edit_task_uc.update_reminders(
+        reminders=reminders, new_due_date=new_due_date
+    )
 
     assert len(updated_reminders) == 1
     assert updated_reminders[0].offset_seconds == timedelta(hours=-1)
@@ -106,7 +112,8 @@ async def test_displaying_reminders_text(edit_task_uc: EditTaskUseCase, task_rep
     task_repo_mock.update.return_value = task_no_reminders
 
     res = await edit_task_uc.execute(
-        data=TaskUpdate(id=task.id, user_id=task.user_id, text="new_text")
+        user_id=task.user_id,
+        data=TaskUpdate(id=task.id, text="new_text"),
     )
     assert len(res.reminders) == len(task.reminders)
 
@@ -127,6 +134,7 @@ async def test_displaying_reminders_date(edit_task_uc: EditTaskUseCase, task_rep
     task_repo_mock.update.return_value = task_no_reminders
 
     res = await edit_task_uc.execute(
-        data=TaskUpdate(id=task.id, user_id=task.user_id, due_date=new_due_date)
+        user_id=task.user_id,
+        data=TaskUpdate(id=task.id, due_date=new_due_date),
     )
     assert len(res.reminders) == len(task.reminders)

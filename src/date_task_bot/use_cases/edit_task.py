@@ -8,14 +8,14 @@ from date_task_bot.schemas import Reminder, Task
 
 class EditTaskUseCase:
     def __init__(
-        self, task_repo: TaskRepository, reminder_repo: ReminderRepository
+        self, *, task_repo: TaskRepository, reminder_repo: ReminderRepository
     ) -> None:
         self.task_repo = task_repo
         self.reminder_repo = reminder_repo
 
     @staticmethod
     def update_reminders(
-        reminders: list[Reminder], new_due_date: datetime
+        *, reminders: list[Reminder], new_due_date: datetime
     ) -> list[Reminder]:
         updated_reminders = []
         now = datetime.now(UTC)
@@ -30,7 +30,7 @@ class EditTaskUseCase:
             )
         return updated_reminders
 
-    async def execute(self, data: TaskUpdate) -> Task:
+    async def execute(self, *, user_id: str, data: TaskUpdate) -> Task:
         now = datetime.now(UTC)
 
         if data.due_date and data.due_date <= now:
@@ -43,7 +43,7 @@ class EditTaskUseCase:
             )
 
         task = await self.task_repo.get(id=data.id, load_reminders=True)
-        if not task or task.user_id != data.user_id:
+        if not task or task.user_id != user_id:
             raise NotFoundException(entity=EntityEnum.TASK, data={"id": data.id})
 
         updated_task = await self.task_repo.update(data=data)
@@ -54,7 +54,7 @@ class EditTaskUseCase:
             updated_reminders = self.update_reminders(
                 reminders=task.reminders, new_due_date=data.due_date
             )
-            await self.reminder_repo.update_all(updated_reminders)
+            await self.reminder_repo.update_all(reminders=updated_reminders)
             updated_task = updated_task.model_copy(
                 update={"reminders": updated_reminders}
             )

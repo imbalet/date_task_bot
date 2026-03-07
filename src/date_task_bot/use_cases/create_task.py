@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from date_task_bot.exceptions import EntityEnum, ValidationException
+from date_task_bot.exceptions import EntityEnum, NotFoundException, ValidationException
 from date_task_bot.repositories import (
     TaskRepository,
     UserSettingsRepository,
@@ -11,14 +11,14 @@ from date_task_bot.schemas import DefaultRemindTiming, Task
 
 class CreateTaskUseCase:
     def __init__(
-        self, task_repo: TaskRepository, user_settings_repo: UserSettingsRepository
+        self, *, task_repo: TaskRepository, user_settings_repo: UserSettingsRepository
     ) -> None:
         self.task_repo = task_repo
         self.user_settings_repo = user_settings_repo
 
     @staticmethod
     def create_reminders(
-        due_date: datetime, timings: list[DefaultRemindTiming]
+        *, due_date: datetime, timings: list[DefaultRemindTiming]
     ) -> list[ReminderCreate]:
         reminders = []
         now = datetime.now(UTC)
@@ -36,7 +36,12 @@ class CreateTaskUseCase:
         return reminders
 
     async def execute(
-        self, user_id: str, text: str, due_date: datetime, now_: datetime | None = None
+        self,
+        *,
+        user_id: str,
+        text: str,
+        due_date: datetime,
+        now_: datetime | None = None,
     ) -> Task:
         """Creates task with related timings and reminders.
 
@@ -58,11 +63,15 @@ class CreateTaskUseCase:
         user_settings = await self.user_settings_repo.get_by_user_id(
             user_id=user_id, load_offsets=True
         )
+        if not user_settings:
+            raise NotFoundException(
+                entity=EntityEnum.SETTINGS, data={"user_id": user_id}
+            )
         reminders = self.create_reminders(
             due_date=due_date_utc, timings=user_settings.timings
         )
         task = await self.task_repo.create(
-            TaskCreate(
+            task=TaskCreate(
                 user_id=user_id,
                 text=text,
                 due_date=due_date_utc,

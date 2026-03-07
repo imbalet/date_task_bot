@@ -19,14 +19,14 @@ class RegisterUserUseCaseResult:
 
 
 class RegisterUserUseCase:
-    def __init__(self, user_repo: UserRepository) -> None:
+    def __init__(self, *, user_repo: UserRepository) -> None:
         self.user_repo = user_repo
 
-    async def execute(self, data: UserCreate) -> RegisterUserUseCaseResult:
+    async def execute(self, *, data: UserCreate) -> RegisterUserUseCaseResult:
         user = await self.user_repo.get(id=data.id, load_settings=True)
 
         if user:
             return RegisterUserUseCaseResult(user_exists=True, user=user)
 
-        new_user = await self.user_repo.create(data)
+        new_user = await self.user_repo.create(user=data)
         return RegisterUserUseCaseResult(user_exists=False, user=new_user)

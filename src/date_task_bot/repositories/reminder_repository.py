@@ -16,7 +16,7 @@ logger = getLogger(__name__)
 
 
 class ReminderRepository(BaseRepository):
-    async def create(self, reminder: ReminderCreate) -> Reminder:
+    async def create(self, *, reminder: ReminderCreate) -> Reminder:
         async with self.session_factory() as session:
             try:
                 new = ReminderOrm(
@@ -33,7 +33,8 @@ class ReminderRepository(BaseRepository):
                 logger.exception("Integrity error in ReminderRepository", exc_info=True)
                 raise AppException(entity=EntityEnum.REMINDER) from e
 
-    async def bulk_create(self, reminders: list[ReminderCreate]) -> list[Reminder]:
+    async def bulk_create(self, *, reminders: list[ReminderCreate]) -> list[Reminder]:
+        # TODO: add exceptions handling
         async with self.session_factory() as session:
             res = await session.execute(
                 insert(ReminderOrm).returning(ReminderOrm),
@@ -43,14 +44,14 @@ class ReminderRepository(BaseRepository):
             await session.commit()
             return [ReminderResponse.model_validate(i) for i in result]
 
-    async def get(self, id: UUID) -> Reminder | None:
+    async def get(self, *, id: UUID) -> Reminder | None:
         async with self.session_factory() as session:
             res = await session.get(ReminderOrm, id)
             if res is None:
                 return None
             return ReminderResponse.model_validate(res)
 
-    async def get_by_task_id(self, task_id: UUID) -> list[Reminder]:
+    async def get_by_task_id(self, *, task_id: UUID) -> list[Reminder]:
         async with self.session_factory() as session:
             stmt = (
                 select(ReminderOrm)
@@ -61,7 +62,7 @@ class ReminderRepository(BaseRepository):
             result = res.scalars().all()
             return [ReminderResponse.model_validate(i) for i in result]
 
-    async def set_status(self, id: UUID, status: ReminderStatus) -> Reminder | None:
+    async def set_status(self, *, id: UUID, status: ReminderStatus) -> Reminder | None:
         async with self.session_factory() as session:
             stmt = (
                 update(ReminderOrm)
@@ -76,7 +77,7 @@ class ReminderRepository(BaseRepository):
                 return None
             return ReminderResponse.model_validate(result)
 
-    async def reserve_due_reminders(self, limit: int = 300) -> list[DueReminder]:
+    async def reserve_due_reminders(self, *, limit: int = 300) -> list[DueReminder]:
         async with self.session_factory() as session:
             try:
                 now = datetime.now(UTC)
@@ -120,19 +121,19 @@ class ReminderRepository(BaseRepository):
                 logger.exception("Integrity error in ReminderRepository", exc_info=True)
                 raise AppException(entity=EntityEnum.REMINDER) from e
 
-    async def delete(self, id: UUID) -> None:
+    async def delete(self, *, id: UUID) -> None:
         async with self.session_factory() as session:
             stmt = delete(ReminderOrm).where(ReminderOrm.id == id)
             await session.execute(stmt)
             await session.commit()
 
-    async def delete_by_task_id(self, task_id: UUID) -> None:
+    async def delete_by_task_id(self, *, task_id: UUID) -> None:
         async with self.session_factory() as session:
             stmt = delete(ReminderOrm).where(ReminderOrm.task_id == task_id)
             await session.execute(stmt)
             await session.commit()
 
-    async def update_all(self, reminders: list[Reminder]) -> None:
+    async def update_all(self, *, reminders: list[Reminder]) -> None:
         async with self.session_factory() as session:
             await session.execute(
                 update(ReminderOrm),

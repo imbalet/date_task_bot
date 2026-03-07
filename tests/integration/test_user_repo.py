@@ -18,7 +18,7 @@ from tests.integration.utils import (
 async def test_create(
     user_repo: UserRepository, async_session_factory, user_create_schema
 ):
-    res = await user_repo.create(user_create_schema)
+    res = await user_repo.create(user=user_create_schema)
 
     from_db = UserResponse.model_validate(
         await get_from_db_by_pk(async_session_factory, UserOrm, user_create_schema.id)
@@ -40,7 +40,7 @@ async def test_create_already_exists(user_repo: UserRepository, async_session_fa
     user = make_user()
     await create_entity(async_session_factory, make_user_orm(user))
     with pytest.raises(AlreadyExistsException):
-        await user_repo.create(UserCreate.model_validate(user))
+        await user_repo.create(user=UserCreate.model_validate(user))
 
 
 async def test_get(
@@ -48,7 +48,7 @@ async def test_get(
     user_in_db: UserResponse,
     task_in_db: TaskResponse,
 ):
-    res = await user_repo.get(user_in_db.id)
+    res = await user_repo.get(id=user_in_db.id)
 
     assert res
     assert res.id == user_in_db.id
@@ -61,7 +61,7 @@ async def test_get_load_settings(
     user_repo: UserRepository,
     user_in_db: UserResponse,
 ):
-    res = await user_repo.get(user_in_db.id, load_settings=True)
+    res = await user_repo.get(id=user_in_db.id, load_settings=True)
 
     assert res
     assert res.id == user_in_db.id
@@ -74,7 +74,7 @@ async def test_get_load_tasks(
     user_in_db: UserResponse,
     task_in_db: TaskResponse,
 ):
-    res = await user_repo.get(user_in_db.id, load_tasks=True)
+    res = await user_repo.get(id=user_in_db.id, load_tasks=True)
 
     assert res
     assert res.id == user_in_db.id
@@ -90,7 +90,7 @@ async def test_get_load_tasks_reminders(
     user_in_db: UserResponse,
     task_in_db: TaskResponse,
 ):
-    res = await user_repo.get(user_in_db.id, load_tasks=True, load_reminders=True)
+    res = await user_repo.get(id=user_in_db.id, load_tasks=True, load_reminders=True)
 
     assert res
     assert res.id == user_in_db.id
@@ -99,6 +99,6 @@ async def test_get_load_tasks_reminders(
 
 
 async def test_get_not_exists(user_repo: UserRepository):
-    res = await user_repo.get("non existing id")
+    res = await user_repo.get(id="non existing id")
 
     assert res is None

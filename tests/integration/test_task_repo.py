@@ -23,7 +23,7 @@ async def test_create(
     async_session_factory,
 ):
     task = make_task(user_id=user_in_db.id)
-    res = await task_repo.create(TaskCreate.model_validate(task))
+    res = await task_repo.create(task=TaskCreate.model_validate(task))
 
     from_db = TaskResponse.model_validate(
         await get_from_db_by_pk(async_session_factory, TaskOrm, res.id)
@@ -39,7 +39,7 @@ async def test_get(
     task_repo: TaskRepository,
     task_in_db: TaskResponse,
 ):
-    res = await task_repo.get(task_in_db.id)
+    res = await task_repo.get(id=task_in_db.id)
 
     assert res
     assert res.text == task_in_db.text
@@ -50,7 +50,7 @@ async def test_get_with_reminders(
     task_repo: TaskRepository,
     task_in_db: TaskResponse,
 ):
-    res = await task_repo.get(task_in_db.id, load_reminders=True)
+    res = await task_repo.get(id=task_in_db.id, load_reminders=True)
 
     assert res
     assert res.text == task_in_db.text
@@ -58,7 +58,7 @@ async def test_get_with_reminders(
 
 
 async def test_get_not_exists(task_repo: TaskRepository, fixed_uuid: UUID):
-    res = await task_repo.get(fixed_uuid)
+    res = await task_repo.get(id=fixed_uuid)
 
     assert res is None
 
@@ -80,8 +80,10 @@ async def test_get_by_user_id(
         make_task_orm(task, created_at=now + timedelta(minutes=1)),
     )
 
-    res = await task_repo.get_by_user_id(
-        TaskPaginationRequest(user_id=user_in_db.id, page=1, page_size=2)
+    res = await task_repo.get_with_pagination(
+        pagination_request=TaskPaginationRequest(
+            user_id=user_in_db.id, page=1, page_size=2
+        )
     )
 
     assert res.total_items == 2
@@ -108,13 +110,13 @@ async def test_get_by_user_id_with_status(
         make_task_orm(task, created_at=now + timedelta(minutes=1)),
     )
 
-    res_dome = await task_repo.get_by_user_id(
-        TaskPaginationRequest(
+    res_dome = await task_repo.get_with_pagination(
+        pagination_request=TaskPaginationRequest(
             user_id=user_in_db.id, page=1, page_size=2, status=TaskStatus.DONE
         )
     )
-    res_pending = await task_repo.get_by_user_id(
-        TaskPaginationRequest(
+    res_pending = await task_repo.get_with_pagination(
+        pagination_request=TaskPaginationRequest(
             user_id=user_in_db.id, page=1, page_size=2, status=TaskStatus.PENDING
         )
     )
@@ -148,8 +150,10 @@ async def test_get_by_user_id_with_status_multiple(
         make_task_orm(task, created_at=now + timedelta(minutes=1), status=status),
     )
 
-    res = await task_repo.get_by_user_id(
-        TaskPaginationRequest(user_id=user_in_db.id, page=1, page_size=2, status=status)
+    res = await task_repo.get_with_pagination(
+        pagination_request=TaskPaginationRequest(
+            user_id=user_in_db.id, page=1, page_size=2, status=status
+        )
     )
 
     assert res.total_items == 2
@@ -182,8 +186,10 @@ async def test_get_by_user_id_with_status_with_other_user_different_statuses(
         make_task_orm(task2, created_at=now, status=status2),
     )
 
-    res = await task_repo.get_by_user_id(
-        TaskPaginationRequest(user_id=user1.id, page=1, page_size=2, status=status1)
+    res = await task_repo.get_with_pagination(
+        pagination_request=TaskPaginationRequest(
+            user_id=user1.id, page=1, page_size=2, status=status1
+        )
     )
 
     assert res.total_items == 1
@@ -206,16 +212,20 @@ async def test_get_by_user_id_with_pagination(
         make_task_orm(task, created_at=now + timedelta(minutes=1)),
     )
 
-    res = await task_repo.get_by_user_id(
-        TaskPaginationRequest(user_id=user_in_db.id, page=1, page_size=1)
+    res = await task_repo.get_with_pagination(
+        pagination_request=TaskPaginationRequest(
+            user_id=user_in_db.id, page=1, page_size=1
+        )
     )
 
     assert res.total_items == 2
     assert len(res.items) == 1
     assert res.items[0].id == created2.id
 
-    res = await task_repo.get_by_user_id(
-        TaskPaginationRequest(user_id=user_in_db.id, page=2, page_size=1)
+    res = await task_repo.get_with_pagination(
+        pagination_request=TaskPaginationRequest(
+            user_id=user_in_db.id, page=2, page_size=1
+        )
     )
 
     assert res.total_items == 2
@@ -227,8 +237,10 @@ async def test_get_by_user_id_empty(
     task_repo: TaskRepository,
     user_in_db: UserResponse,
 ):
-    res = await task_repo.get_by_user_id(
-        TaskPaginationRequest(user_id=user_in_db.id, page=1, page_size=1)
+    res = await task_repo.get_with_pagination(
+        pagination_request=TaskPaginationRequest(
+            user_id=user_in_db.id, page=1, page_size=1
+        )
     )
 
     assert res.total_items == 0
@@ -240,7 +252,7 @@ async def test_update(
     task_repo: TaskRepository,
     task_in_db: TaskResponse,
 ):
-    data = TaskUpdate(id=task_in_db.id, user_id=task_in_db.user_id, text="new text")
+    data = TaskUpdate(id=task_in_db.id, text="new text")
 
     res = await task_repo.update(data=data)
 
@@ -260,7 +272,7 @@ async def test_update_empty_with_user(
     user_in_db: UserResponse,
 ):
     task_id = uuid4()
-    data = TaskUpdate(id=task_id, user_id=user_in_db.id, text="new text")
+    data = TaskUpdate(id=task_id, text="new text")
 
     res = await task_repo.update(data=data)
 
@@ -273,7 +285,7 @@ async def test_update_empty_with_user(
 async def test_delete(
     async_session_factory, task_repo: TaskRepository, task_in_db: TaskResponse
 ):
-    await task_repo.delete(task_in_db.id)
+    await task_repo.delete(id=task_in_db.id)
 
     from_db = await get_from_db_by_pk(async_session_factory, TaskOrm, task_in_db.id)
     assert from_db is None

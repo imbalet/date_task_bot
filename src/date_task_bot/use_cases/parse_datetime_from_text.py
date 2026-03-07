@@ -22,10 +22,10 @@ class ParseDatetimeFromTextUseCase:
         "%Y.%m.%d %H.%M.%S",  # 2026.01.13 15.45.00
     )
 
-    def __init__(self, format_strings: Iterable[str] | None = None) -> None:
+    def __init__(self, *, format_strings: Iterable[str] | None = None) -> None:
         self.format_strings = list(format_strings or self.DEFAULT_FORMATS)
 
-    def execute(self, datetime_str: str, tz: ZoneInfo) -> datetime | None:
+    def execute(self, *, datetime_str: str, tz: ZoneInfo) -> datetime | None:
         """Parses a datetime from a string.
 
         Args:

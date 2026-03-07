@@ -29,7 +29,7 @@ async def test_create(
 ):
     reminder = make_reminder(task_id=task_without_reminders_in_db.id)
 
-    res = await reminder_repo.create(ReminderCreate.model_validate(reminder))
+    res = await reminder_repo.create(reminder=ReminderCreate.model_validate(reminder))
 
     from_db = ReminderResponse.model_validate(
         await get_from_db_by_pk(async_session_factory, ReminderOrm, res.id)
@@ -44,14 +44,14 @@ async def test_get(
     reminder_repo: ReminderRepository,
     reminder_in_db: ReminderResponse,
 ):
-    res = await reminder_repo.get(reminder_in_db.id)
+    res = await reminder_repo.get(id=reminder_in_db.id)
 
     assert res
     assert res.task_id == reminder_in_db.task_id
 
 
 async def test_get_not_exists(reminder_repo: ReminderRepository, fixed_uuid: UUID):
-    res = await reminder_repo.get(fixed_uuid)
+    res = await reminder_repo.get(id=fixed_uuid)
 
     assert res is None
 
@@ -60,7 +60,7 @@ async def test_get_by_task_id(
     reminder_repo: ReminderRepository,
     reminder_in_db: ReminderResponse,
 ):
-    res = await reminder_repo.get_by_task_id(reminder_in_db.task_id)
+    res = await reminder_repo.get_by_task_id(task_id=reminder_in_db.task_id)
 
     assert len(res) == 1
     assert res[0].id == reminder_in_db.id
@@ -217,7 +217,7 @@ async def test_delete(
     reminder_repo: ReminderRepository,
     reminder_in_db: ReminderResponse,
 ):
-    await reminder_repo.delete(reminder_in_db.id)
+    await reminder_repo.delete(id=reminder_in_db.id)
 
     from_db = await get_from_db_by_pk(
         async_session_factory, ReminderOrm, reminder_in_db.id
@@ -231,7 +231,7 @@ async def test_delete_by_task_id(
     reminder_repo: ReminderRepository,
     reminder_in_db: ReminderResponse,
 ):
-    await reminder_repo.delete_by_task_id(reminder_in_db.task_id)
+    await reminder_repo.delete_by_task_id(task_id=reminder_in_db.task_id)
 
     from_db = await get_from_db_by_pk(
         async_session_factory, ReminderOrm, reminder_in_db.id
@@ -269,7 +269,9 @@ async def test_update_all(
 
     await reminder_repo.update_all(reminders=updated_reminders)
 
-    from_db = await reminder_repo.get_by_task_id(task_without_reminders_in_db.id)
+    from_db = await reminder_repo.get_by_task_id(
+        task_id=task_without_reminders_in_db.id
+    )
 
     for reminder in from_db:
         if reminder.id == saved_reminders[0].id:

@@ -54,8 +54,8 @@ async def all_tasks(
 
     user_tz_data = await get_tz_uc.execute(user_id=user_id)
     tasks_with_pagination = await get_all_tasks_uc.execute(
-        TaskPaginationRequest(
-            user_id=user_id, page=current_page, page_size=6, status=status
+        pagination_request=TaskPaginationRequest(
+            page=current_page, page_size=6, user_id=user_id, status=status
         )
     )
     tasks_formatter = TaskListFormatter(user_tz=user_tz_data.current_timezone)
@@ -121,7 +121,7 @@ async def task_info(
 ) -> None:
     user_tz_data = await get_tz_uc.execute(user_id=user_id)
 
-    task = await get_task_uc.execute(callback_data.task)
+    task = await get_task_uc.execute(task_id=callback_data.task, user_id=user_id)
     formatted_task = TaskFormatter(user_tz=user_tz_data.current_timezone).format(task)
 
     buttons = [

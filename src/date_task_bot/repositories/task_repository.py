@@ -23,7 +23,7 @@ logger = getLogger(__name__)
 
 
 class TaskRepository(BaseRepository):
-    async def create(self, task: TaskCreate) -> Task:
+    async def create(self, *, task: TaskCreate) -> Task:
         async with self.session_factory() as session:
             try:
                 new = TaskOrm(
@@ -46,7 +46,12 @@ class TaskRepository(BaseRepository):
                 logger.exception("Integrity error in TaskRepository", exc_info=True)
                 raise AppException(entity=EntityEnum.TASK) from e
 
-    async def get(self, id: UUID, load_reminders: bool = False) -> Task | None:
+    async def get(
+        self,
+        *,
+        id: UUID,
+        load_reminders: bool = False,
+    ) -> Task | None:
         async with self.session_factory() as session:
             options = []
             if load_reminders:
@@ -57,8 +62,9 @@ class TaskRepository(BaseRepository):
                 return None
             return TaskResponse.model_validate(res)
 
-    async def get_by_user_id(
+    async def get_with_pagination(
         self,
+        *,
         pagination_request: TaskPaginationRequest,
         load_reminders: bool = False,
     ) -> PaginationResponse[Task]:
@@ -102,7 +108,11 @@ class TaskRepository(BaseRepository):
                 items=tasks,
             )
 
-    async def update(self, data: TaskUpdate) -> Task | None:
+    async def update(
+        self,
+        *,
+        data: TaskUpdate,
+    ) -> Task | None:
         async with self.session_factory() as session:
             stmt = (
                 update(TaskOrm)
@@ -123,7 +133,11 @@ class TaskRepository(BaseRepository):
 
             return TaskResponse.model_validate(result)
 
-    async def delete(self, id: UUID) -> None:
+    async def delete(
+        self,
+        *,
+        id: UUID,
+    ) -> None:
         async with self.session_factory() as session:
             stmt = delete(TaskOrm).where(TaskOrm.id == id)
             await session.execute(stmt)
