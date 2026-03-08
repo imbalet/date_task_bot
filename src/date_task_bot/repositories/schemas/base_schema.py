@@ -23,10 +23,10 @@ OptionalAwareDatetime = Annotated[datetime | None, AfterValidator(ensure_timezon
 
 class RepositoryDTO(BaseModel):
     @classmethod
-    def model_validate(cls, obj, **kwargs: Any) -> Self:
-        def serialize(obj) -> dict[str, Any]:
+    def model_validate(cls, obj: Any, **kwargs: Any) -> Self:
+        def serialize(obj: Any) -> dict[str, Any]:
             if not hasattr(obj, "__mapper__"):
-                return obj
+                return obj  # type: ignore
 
             insp = inspect(obj)
             data = {}

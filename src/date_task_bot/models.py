@@ -1,12 +1,22 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, UniqueConstraint, func
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    TypeDecorator,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import INTERVAL
+from sqlalchemy.engine import Dialect
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy.types import TypeDecorator
+from sqlalchemy.sql.type_api import TypeEngine
 
 from date_task_bot.schemas import ReminderStatus, TaskStatus
 
@@ -18,29 +28,33 @@ DEFAULT_OFFSETS = [
 ]
 
 
-class RelativeTime(TypeDecorator):
+class RelativeTime(TypeDecorator[int | timedelta]):
     impl = INTERVAL
     cache_ok = True
 
-    def load_dialect_impl(self, dialect):
+    def load_dialect_impl(self, dialect: Dialect) -> TypeEngine[Any]:
         if dialect.name == "postgresql":
             return dialect.type_descriptor(INTERVAL())
         else:
             return dialect.type_descriptor(Integer())
 
-    def process_bind_param(self, value, dialect):
+    def process_bind_param(
+        self, value: int | timedelta | None, dialect: Dialect
+    ) -> Any:
         if value is None:
             return None
         if dialect.name == "postgresql":
-            return value
+            return value if isinstance(value, timedelta) else timedelta(seconds=value)
         else:
-            return int(value.total_seconds())
+            return int(value.total_seconds() if isinstance(value, timedelta) else value)
 
-    def process_result_value(self, value, dialect):
+    def process_result_value(
+        self, value: Any | None, dialect: Dialect
+    ) -> timedelta | None:
         if value is None:
             return None
         if dialect.name == "postgresql":
-            return value
+            return value  # type: ignore
         else:
             return timedelta(seconds=value)
 

@@ -306,12 +306,14 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "mypy" },
+    { name = "mypy-extensions" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
     { name = "ruff" },
     { name = "types-dateparser" },
+    { name = "typing-extensions" },
 ]
 
 [package.metadata]
@@ -330,12 +332,14 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "mypy", specifier = ">=1.19.1" },
+    { name = "mypy-extensions", specifier = ">=1.1.0" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-asyncio", specifier = ">=1.2.0" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
     { name = "pytest-mock", specifier = ">=3.15.1" },
     { name = "ruff", specifier = ">=0.15.4" },
     { name = "types-dateparser", specifier = ">=1.3.0.20260211" },
+    { name = "typing-extensions", specifier = ">=4.15.0" },
 ]
 
 [[package]]

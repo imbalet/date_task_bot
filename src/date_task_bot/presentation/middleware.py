@@ -119,8 +119,8 @@ class CallbackMessageMiddleware[T](BaseMiddleware):
 
         if isinstance(event.message, InaccessibleMessage):
             bot = data.get("bot")
-            bot = cast(Bot, bot)
             if bot:
+                bot = cast(Bot, bot)
                 await bot.send_message(
                     chat_id=event.message.chat.id,
                     text="Сообщение недоступно",

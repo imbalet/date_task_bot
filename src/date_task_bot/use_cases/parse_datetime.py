@@ -53,8 +53,9 @@ class ParseDateTimeUseCase:
         base_settings = self._build_settings(relative_base=base_datetime)
 
         is_only_time = self._is_only_time(text=text)
+        settings: Settings = base_settings
         if is_only_time:
-            settings: Settings = {
+            settings = {
                 **base_settings,
                 "PREFER_DATES_FROM": "current_period",
             }

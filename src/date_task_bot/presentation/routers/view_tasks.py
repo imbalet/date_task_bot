@@ -51,6 +51,8 @@ async def all_tasks(
     elif callback_data:
         status = callback_data.status
         current_page = callback_data.page
+    else:
+        raise RuntimeError("No message or callback data")
 
     user_tz_data = await get_tz_uc.execute(user_id=user_id)
     tasks_with_pagination = await get_all_tasks_uc.execute(

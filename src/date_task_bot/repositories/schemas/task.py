@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator
@@ -24,7 +25,7 @@ class TaskResponse(Task, RepositoryDTO):
     reminders: list[Reminder] = Field(default_factory=list)
 
     @field_validator("reminders", mode="before")
-    def validate_reminders_as_response(cls, v) -> list[Reminder]:
+    def validate_reminders_as_response(cls, v: Any) -> list[Reminder]:
         if not v:
             return []
         return [ReminderResponse.model_validate(item) for item in v]

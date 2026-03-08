@@ -30,7 +30,7 @@ def get_chat_info(update: Update) -> tuple[int | None, Bot | None]:
     if update.message and update.message.from_user:
         user_id = update.message.from_user.id
         bot = update.message.bot
-    elif update.callback_query and update.callback_query.from_user:
+    elif update.callback_query:
         user_id = update.callback_query.from_user.id
         bot = update.callback_query.bot
     return user_id, bot

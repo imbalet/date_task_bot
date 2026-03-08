@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy import event
 from sqlalchemy.engine.url import make_url
@@ -44,7 +45,7 @@ async def get_sessionmaker() -> tuple[AsyncEngine, async_sessionmaker[AsyncSessi
     )
 
     @event.listens_for(engine.sync_engine, "connect")
-    def enable_sqlite_fk(dbapi_connection, connection_record) -> None:
+    def enable_sqlite_fk(dbapi_connection: Any, connection_record: Any) -> None:
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()

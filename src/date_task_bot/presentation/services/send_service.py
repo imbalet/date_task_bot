@@ -2,7 +2,7 @@ import asyncio
 from collections.abc import Awaitable, Callable
 from functools import wraps
 from logging import getLogger
-from typing import ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 from aiogram import Bot
 from aiogram.exceptions import (
@@ -70,7 +70,7 @@ class Sender:
         user_id: int,
         text: str,
         reply_markup: InlineKeyboardMarkup | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> Message:
         await self.rate_limiter.acquire()
         return await self.bot.send_message(
@@ -83,7 +83,7 @@ class Sender:
         message: Message,
         text: str,
         reply_markup: InlineKeyboardMarkup | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> Message:
         await self.rate_limiter.acquire()
         return await message.answer(text=text, reply_markup=reply_markup, **kwargs)
@@ -95,7 +95,7 @@ class Sender:
         message_id: int,
         text: str,
         reply_markup: InlineKeyboardMarkup | None = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         await self.rate_limiter.acquire()
         await self.bot.edit_message_text(
