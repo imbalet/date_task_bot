@@ -69,15 +69,17 @@ async def test_get_by_user_id(
     async_session_factory,
 ):
     now = datetime.now(UTC)
-    task = make_task(user_id=user_in_db.id)
 
     # for correct sorting
     created1: TaskOrm = await create_entity(
-        async_session_factory, make_task_orm(task, created_at=now)
+        async_session_factory,
+        make_task_orm(make_task(user_id=user_in_db.id), created_at=now),
     )
     created2: TaskOrm = await create_entity(
         async_session_factory,
-        make_task_orm(task, created_at=now + timedelta(minutes=1)),
+        make_task_orm(
+            make_task(user_id=user_in_db.id), created_at=now + timedelta(minutes=1)
+        ),
     )
 
     res = await task_repo.get_with_pagination(
@@ -98,16 +100,19 @@ async def test_get_by_user_id_with_status(
     async_session_factory,
 ):
     now = datetime.now(UTC)
-    task = make_task(user_id=user_in_db.id)
 
     # for correct sorting
     created1: TaskOrm = await create_entity(
         async_session_factory,
-        make_task_orm(task, created_at=now, status=TaskStatus.DONE),
+        make_task_orm(
+            make_task(user_id=user_in_db.id), created_at=now, status=TaskStatus.DONE
+        ),
     )
     created2: TaskOrm = await create_entity(
         async_session_factory,
-        make_task_orm(task, created_at=now + timedelta(minutes=1)),
+        make_task_orm(
+            make_task(user_id=user_in_db.id), created_at=now + timedelta(minutes=1)
+        ),
     )
 
     res_dome = await task_repo.get_with_pagination(
@@ -138,16 +143,19 @@ async def test_get_by_user_id_with_status_multiple(
     status: TaskStatus,
 ):
     now = datetime.now(UTC)
-    task = make_task(user_id=user_in_db.id)
 
     # for correct sorting
     created1: TaskOrm = await create_entity(
         async_session_factory,
-        make_task_orm(task, created_at=now, status=status),
+        make_task_orm(make_task(user_id=user_in_db.id), created_at=now, status=status),
     )
     created2: TaskOrm = await create_entity(
         async_session_factory,
-        make_task_orm(task, created_at=now + timedelta(minutes=1), status=status),
+        make_task_orm(
+            make_task(user_id=user_in_db.id),
+            created_at=now + timedelta(minutes=1),
+            status=status,
+        ),
     )
 
     res = await task_repo.get_with_pagination(
@@ -203,13 +211,15 @@ async def test_get_by_user_id_with_pagination(
     async_session_factory,
 ):
     now = datetime.now(UTC)
-    task = make_task(user_id=user_in_db.id)
     created1: TaskOrm = await create_entity(
-        async_session_factory, make_task_orm(task, created_at=now)
+        async_session_factory,
+        make_task_orm(make_task(user_id=user_in_db.id), created_at=now),
     )
     created2: TaskOrm = await create_entity(
         async_session_factory,
-        make_task_orm(task, created_at=now + timedelta(minutes=1)),
+        make_task_orm(
+            make_task(user_id=user_in_db.id), created_at=now + timedelta(minutes=1)
+        ),
     )
 
     res = await task_repo.get_with_pagination(

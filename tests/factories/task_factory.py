@@ -35,12 +35,6 @@ def make_task(
         validated_reminder = reminder.model_copy(update=update, deep=True)
         validated_reminders.append(validated_reminder)
 
-    if reminders:
-        reminders = [
-            i.model_copy(update={"task_id": task_id, "remind_at": due_date}, deep=True)
-            for i in reminders
-        ]
-
     return Task(
         id=task_id,
         user_id=user_id,
@@ -49,5 +43,5 @@ def make_task(
         status=status,
         created_at=created_at or datetime.now(UTC),
         edited_at=edited_at,
-        reminders=reminders,
+        reminders=validated_reminders,
     )

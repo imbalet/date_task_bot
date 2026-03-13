@@ -5,11 +5,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
-async def get_from_db_by_pk(
-    async_session_factory: async_sessionmaker[AsyncSession], orm_model, primary_key
-) -> Any:
+async def get_from_db_by_pk[T](
+    async_session_factory: async_sessionmaker[AsyncSession],
+    orm_model: type[T],
+    primary_key: Any,
+) -> T:
     async with async_session_factory() as session:
-        return await session.get(orm_model, primary_key)
+        return await session.get(orm_model, primary_key)  # pyright: ignore[reportReturnType]
 
 
 async def get_from_db_by_filter(

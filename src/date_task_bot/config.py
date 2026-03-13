@@ -23,11 +23,14 @@ class Config(BaseSettings):
     DB_PASS: str | None = None
 
     SQLITE_DB_NAME: str = "database"
+    SQLITE_DB_PATH: str | None = None
 
     @property
     def DB_URL(self) -> str:  # noqa: N802
         if self.DB_HOST:
             return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASS}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        elif self.SQLITE_DB_PATH:
+            return f"sqlite+aiosqlite:///{self.SQLITE_DB_PATH}"
         else:
             return f"sqlite+aiosqlite:///./database/{self.SQLITE_DB_NAME}.db"
 

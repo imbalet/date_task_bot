@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from logging import getLogger
 from uuid import UUID
 
-from sqlalchemy import delete, insert, select, text, update
+from sqlalchemy import delete, select, text, update
 from sqlalchemy.exc import IntegrityError
 
 from date_task_bot.exceptions import AppException, EntityEnum
@@ -31,18 +31,19 @@ class ReminderRepository(BaseRepository):
             except IntegrityError as e:
                 await session.rollback()
                 logger.exception("Integrity error in ReminderRepository", exc_info=True)
+                # TODO: Add exceptions for repositories
                 raise AppException(entity=EntityEnum.REMINDER) from e
 
-    async def bulk_create(self, *, reminders: list[ReminderCreate]) -> list[Reminder]:
-        # TODO: add exceptions handling
-        async with self.session_factory() as session:
-            res = await session.execute(
-                insert(ReminderOrm).returning(ReminderOrm),
-                [r.model_dump() for r in reminders],
-            )
-            result = res.scalars().all()
-            await session.commit()
-            return [ReminderResponse.model_validate(i) for i in result]
+    # async def bulk_create(self, *, reminders: list[ReminderCreate]) -> list[Reminder]:
+    #     # TODO: add exceptions handling
+    #     async with self.session_factory() as session:
+    #         res = await session.execute(
+    #             insert(ReminderOrm).returning(ReminderOrm),
+    #             [r.model_dump() for r in reminders],
+    #         )
+    #         result = res.scalars().all()
+    #         await session.commit()
+    #         return [ReminderResponse.model_validate(i) for i in result]
 
     async def get(self, *, id: UUID) -> Reminder | None:
         async with self.session_factory() as session:
