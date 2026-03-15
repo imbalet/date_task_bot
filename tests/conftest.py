@@ -5,7 +5,12 @@ import pytest
 
 from date_task_bot.repositories.schemas import TaskCreate, UserCreate
 from date_task_bot.schemas import Task, User, UserSettings
-from tests.factories import make_reminder, make_task, make_user, make_user_settings
+from tests.factories import (
+    ReminderFactory,
+    TaskFactory,
+    UserFactory,
+    UserSettingsFactory,
+)
 
 
 @pytest.fixture
@@ -28,37 +33,65 @@ def timezone() -> str:
     return "UTC"
 
 
+# factories
+
+
+@pytest.fixture
+def reminder_factory(create_entity) -> ReminderFactory:
+    return ReminderFactory(insert_async_func=create_entity)
+
+
+@pytest.fixture
+def task_factory(create_entity) -> TaskFactory:
+    return TaskFactory(insert_async_func=create_entity)
+
+
+@pytest.fixture
+def user_factory(create_entity) -> UserFactory:
+    return UserFactory(insert_async_func=create_entity)
+
+
+@pytest.fixture
+def user_settings_factory(create_entity) -> UserSettingsFactory:
+    return UserSettingsFactory(insert_async_func=create_entity)
+
+
 # User
 @pytest.fixture
-def user_create_schema() -> UserCreate:
-    return UserCreate.model_validate(make_user())
+def user_create_schema(user_factory) -> UserCreate:
+    return UserCreate.model_validate(user_factory.make_schema())
 
 
 @pytest.fixture
-def user_response_schema(user_id: str) -> User:
-    return make_user(id=user_id, use_default_settings=True)
+def user_response_schema(user_id: str, user_factory) -> User:
+    return user_factory.make_schema({"id": user_id}, use_default_settings=True)
 
 
 @pytest.fixture
-def user_settings_response_schema() -> UserSettings:
-    return make_user_settings(use_default_offsets=True)
+def user_settings_response_schema(user_settings_factory) -> UserSettings:
+    return user_settings_factory.make_schema(use_default_offsets=True)
 
 
 # Task
 
 
 @pytest.fixture
-def task_create_with_reminders_schema() -> TaskCreate:
-    reminders = [make_reminder(offset_seconds=timedelta(hours=-i)) for i in range(3)]
+def task_create_with_reminders_schema(reminder_factory, task_factory) -> TaskCreate:
+    reminders = [
+        reminder_factory.make_schema({"offset_seconds": timedelta(hours=-i)})
+        for i in range(3)
+    ]
     return TaskCreate.model_validate(
-        make_task(
-            due_date=datetime.now(UTC) + timedelta(days=1),
-            reminders=reminders,
-            prefer_offset=True,
+        task_factory.make_schema(
+            {
+                "due_date": datetime.now(UTC) + timedelta(days=1),
+                "reminders": reminders,
+                "prefer_offset": True,
+            }
         )
     )
 
 
 @pytest.fixture
-def task_response_schema(user_id: str) -> Task:
-    return make_task(user_id=user_id)
+def task_response_schema(user_id: str, task_factory) -> Task:
+    return task_factory.make_schema({"user_id": user_id})

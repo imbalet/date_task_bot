@@ -5,7 +5,7 @@ import pytest
 
 from date_task_bot.repositories.schemas import TaskUpdate
 from date_task_bot.use_cases import EditTaskUseCase
-from tests.factories import make_reminder, make_task
+from tests.factories import ReminderFactory, TaskFactory
 
 
 def same_id_iter[T](
@@ -27,7 +27,9 @@ def edit_task_uc(task_repo_mock, reminder_repo_mock):
     return EditTaskUseCase(task_repo=task_repo_mock, reminder_repo=reminder_repo_mock)
 
 
-def test_update_reminders(edit_task_uc: EditTaskUseCase):
+def test_update_reminders(
+    edit_task_uc: EditTaskUseCase, reminder_factory: ReminderFactory
+):
     now = datetime.now(UTC)
     old_due_date = now + timedelta(hours=4)
     new_due_date = now + timedelta(hours=5)
@@ -39,7 +41,12 @@ def test_update_reminders(edit_task_uc: EditTaskUseCase):
     ]
 
     reminders = [
-        make_reminder(offset_seconds=offset, remind_at=old_due_date + offset)
+        reminder_factory.make_schema(
+            {
+                "offset_seconds": offset,
+                "remind_at": old_due_date + offset,
+            }
+        )
         for offset in reminders_offsets
     ]
 
@@ -56,7 +63,9 @@ def test_update_reminders(edit_task_uc: EditTaskUseCase):
         assert rem.remind_at == new_due_date + rem.offset_seconds
 
 
-def test_update_reminders_skips_all_past(edit_task_uc: EditTaskUseCase):
+def test_update_reminders_skips_all_past(
+    edit_task_uc: EditTaskUseCase, reminder_factory: ReminderFactory
+):
     now = datetime.now(UTC)
     old_due_date = now + timedelta(hours=1)
     new_due_date = now - timedelta(hours=1)
@@ -68,7 +77,12 @@ def test_update_reminders_skips_all_past(edit_task_uc: EditTaskUseCase):
     ]
 
     reminders = [
-        make_reminder(offset_seconds=offset, remind_at=old_due_date + offset)
+        reminder_factory.make_schema(
+            {
+                "offset_seconds": offset,
+                "remind_at": old_due_date + offset,
+            }
+        )
         for offset in reminders_offsets
     ]
 
@@ -86,13 +100,15 @@ def test_update_reminders_empty_list(edit_task_uc: EditTaskUseCase):
     assert updated_reminders == []
 
 
-def test_update_reminders_mixed(edit_task_uc: EditTaskUseCase):
+def test_update_reminders_mixed(
+    edit_task_uc: EditTaskUseCase, reminder_factory: ReminderFactory
+):
     now = datetime.now(UTC)
     new_due_date = now + timedelta(hours=2)
 
     reminders = [
-        make_reminder(offset_seconds=timedelta(hours=-3)),
-        make_reminder(offset_seconds=timedelta(hours=-1)),
+        reminder_factory.make_schema({"offset_seconds": timedelta(hours=-3)}),
+        reminder_factory.make_schema({"offset_seconds": timedelta(hours=-1)}),
     ]
 
     updated_reminders = edit_task_uc.update_reminders(
@@ -104,8 +120,13 @@ def test_update_reminders_mixed(edit_task_uc: EditTaskUseCase):
     assert updated_reminders[0].remind_at == new_due_date + timedelta(hours=-1)
 
 
-async def test_displaying_reminders_text(edit_task_uc: EditTaskUseCase, task_repo_mock):
-    task = make_task(reminders=[make_reminder()])
+async def test_displaying_reminders_text(
+    edit_task_uc: EditTaskUseCase,
+    task_repo_mock,
+    reminder_factory: ReminderFactory,
+    task_factory: TaskFactory,
+):
+    task = task_factory.make_schema({"reminders": [reminder_factory.make_schema()]})
     task_no_reminders = task.model_copy(update={"reminders": []})
 
     task_repo_mock.get.return_value = task
@@ -118,15 +139,24 @@ async def test_displaying_reminders_text(edit_task_uc: EditTaskUseCase, task_rep
     assert len(res.reminders) == len(task.reminders)
 
 
-async def test_displaying_reminders_date(edit_task_uc: EditTaskUseCase, task_repo_mock):
+async def test_displaying_reminders_date(
+    edit_task_uc: EditTaskUseCase,
+    task_repo_mock,
+    reminder_factory: ReminderFactory,
+    task_factory: TaskFactory,
+):
     now = datetime.now(UTC)
     old_due_date = now + timedelta(hours=4)
     new_due_date = now + timedelta(hours=5)
     offset = timedelta(hours=-1)
-    task = make_task(
-        reminders=[
-            make_reminder(offset_seconds=offset, remind_at=old_due_date + offset)
-        ]
+    task = task_factory.make_schema(
+        {
+            "reminders": [
+                reminder_factory.make_schema(
+                    {"offset_seconds": offset, "remind_at": old_due_date + offset}
+                )
+            ]
+        }
     )
     task_no_reminders = task.model_copy(update={"reminders": []})
 

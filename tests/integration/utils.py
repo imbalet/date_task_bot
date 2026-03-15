@@ -1,17 +1,45 @@
-from typing import Any
+from typing import Any, overload
 
+from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 
-async def get_from_db_by_pk[T](
+@overload
+async def get_from_db_by_pk[OrmT](
     async_session_factory: async_sessionmaker[AsyncSession],
-    orm_model: type[T],
+    orm_model: type[OrmT],
     primary_key: Any,
-) -> T:
+) -> OrmT | None: ...
+
+
+@overload
+async def get_from_db_by_pk[OrmT, SchemaT: BaseModel](
+    async_session_factory: async_sessionmaker[AsyncSession],
+    orm_model: type[OrmT],
+    primary_key: Any,
+    model_for_validation: type[SchemaT],
+) -> SchemaT | None: ...
+
+
+async def get_from_db_by_pk[OrmT, SchemaT: BaseModel](
+    async_session_factory: async_sessionmaker[AsyncSession],
+    orm_model: type[OrmT],
+    primary_key: Any,
+    model_for_validation: type[SchemaT] | None = None,
+) -> OrmT | SchemaT | None:
+
     async with async_session_factory() as session:
-        return await session.get(orm_model, primary_key)  # pyright: ignore[reportReturnType]
+        res = await session.get(orm_model, primary_key)
+
+        if res is None:
+            return None
+
+        if model_for_validation:
+            return model_for_validation.model_validate(res)
+
+        return res
 
 
 async def get_from_db_by_filter(

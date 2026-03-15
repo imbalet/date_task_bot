@@ -6,9 +6,6 @@ from date_task_bot.repositories.schemas import (
     UserResponse,
     UserSettingsUpdate,
 )
-from tests.integration.utils import (
-    get_from_db_by_pk,
-)
 
 
 async def test_get_by_user_id(
@@ -28,9 +25,9 @@ async def test_get_by_user_id_empty(
 
 
 async def test_update(
-    async_session_factory,
     user_in_db: UserResponse,
     user_settings_repo: UserSettingsRepository,
+    get_from_db_by_pk,
 ):
     settings = await user_settings_repo.get_by_user_id(user_id=user_in_db.id)
     assert settings
@@ -42,9 +39,7 @@ async def test_update(
     )
     assert settings
 
-    from_db = await get_from_db_by_pk(
-        async_session_factory, UserSettingsOrm, settings.id
-    )
+    from_db = await get_from_db_by_pk(UserSettingsOrm, settings.id)
 
     assert settings.timezone == new_tz
     assert from_db.timezone == new_tz

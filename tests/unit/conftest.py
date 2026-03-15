@@ -11,6 +11,12 @@ from date_task_bot.repositories import (
 )
 
 
+# for using factories in unit tests
+@pytest.fixture
+def create_entity():
+    return None
+
+
 @pytest.fixture
 def repos_mock_factory():
     def _make_mock(cls):
