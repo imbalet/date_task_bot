@@ -45,6 +45,8 @@ async def all_tasks(
     kbr_builder: KeyboardBuilder,
     update_main_message: UpdateMainMessage,
 ) -> None:
+    await state.set_state(None)
+
     if isinstance(event, Message):
         status = TaskStatus.PENDING if event.text == "/tasks" else None
         current_page = 1
