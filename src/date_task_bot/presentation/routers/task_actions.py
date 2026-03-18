@@ -101,6 +101,7 @@ async def edit_start(
         event=callback,
         text=TEXTS[MsgKey.CHOOSE_FIELD_TO_UPDATE],
         reply_markup=kbr_builder.as_markup(),
+        create_new=True,
     )
 
 
