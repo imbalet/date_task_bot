@@ -79,7 +79,7 @@ class TaskRepository(BaseRepository):
                 select(TaskOrm, total_col.label("total_items"))
                 .options(*options)
                 .where(TaskOrm.user_id == pagination_request.user_id)
-                .order_by(TaskOrm.created_at.desc())
+                .order_by(TaskOrm.due_date.desc())
                 .limit(pagination_request.limit)
                 .offset(pagination_request.offset)
             )
