@@ -100,13 +100,37 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Create .env file
+        run: |
+          cat > .env << 'EOF'
+          BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+          LOG_LEVEL=${{ vars.LOG_LEVEL }}
+          EOF
+
+      - name: Backup current deployment on server
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            BACKUP_DIR=~/backups_date_task/$(date +%Y%m%d_%H%M%S)
+            mkdir -p ~/backups_date_task
+            if [ -d ~/app ]; then
+              cp -r ~/app "$BACKUP_DIR"
+              echo "Backup created: $BACKUP_DIR"
+              ls -dt ~/backups_date_task/*/ | tail -n +6 | xargs rm -rf
+            else
+              echo "No existing deployment to backup"
+            fi
+
       - name: Copy deployment files via SCP
         uses: appleboy/scp-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml,deploy.sh"
+          source: "docker-compose.yml,deploy.sh,.env"
           target: "~/app"
 
       - name: Deploy application
